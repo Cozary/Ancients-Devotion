@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.cozary.ancients_devotion.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "ancients_devotion.refmap.json",
+  "mixins": [
+  ],
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
