@@ -11,7 +11,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.EntityTypeTags;
+import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
@@ -47,9 +49,10 @@ public class Soltitia extends AbstractGodBehavior {
 
     private static void testing(Player player) {
 
-        DevotionHandler.setCurrentGod(player, "soltitia");
-        SOLTITIA = GodRegistry.GODS.get(DevotionHandler.getCurrentGod(player));
-        PacketDistributor.sendToPlayer((ServerPlayer) player, new GodData(SOLTITIA.getName()));
+        AncientsDevotion.LOG.info(DevotionHandler.getCurrentGod(player));
+
+        //This need to be somewhere similar. getGod outside?¿ idk
+        SOLTITIA = GodRegistry.GODS.get("soltitia");
 
         //AncientsDevotion.LOG.info("Current Devotion: {}", DevotionHandler.getDevotion(player, SOLTITIA));
     }
@@ -58,33 +61,51 @@ public class Soltitia extends AbstractGodBehavior {
     public void onTick(Player player) {
         testing(player);
 
+        //Ritual
         isPlayerLookingAtSun(player);
 
+        //Devotion
         increaseDevotion(player);
-        applyLittleSun(player);
-        applyDivineHealing(player);
-        applySharedLight(player);
+
+        if(DevotionHandler.hasDevotion(player, SOLTITIA, 5)){
+            applyLittleSun(player);
+        }
+        if(DevotionHandler.hasDevotion(player, SOLTITIA, 10)) {
+            applyDivineHealing(player);
+        }
+        if(DevotionHandler.hasDevotion(player, SOLTITIA, 20)) {
+            applySharedLight(player);
+        }
+
         applyCursedShadow(player);
     }
 
     @Override
-    public void onPlayerDeath(Player player, LivingDeathEvent event) {
-        applySunProtection(player, event);
-        applyBetrayedLight(player);
+    public void onAttack(Player player, LivingEntity target, LivingIncomingDamageEvent event) {
+        if(DevotionHandler.hasDevotion(player, SOLTITIA, 30)) {
+            applyBurningJudgment(player, target, event);
+        }
+        if(DevotionHandler.hasDevotion(player, SOLTITIA, 60)) {
+            applyJudgmentOfLight(player, target, event);
+        }
+
+        applyVowOfJustice(player, target);
     }
 
     @Override
-    public void onAttack(Player player, LivingEntity target, LivingIncomingDamageEvent event) {
-        applyBurningJudgment(player, target, event);
-        applyJudgmentOfLight(player, target, event);
-        applyVowOfJustice(player, target);
+    public void onPlayerDeath(Player player, LivingDeathEvent event) {
+        if(DevotionHandler.hasDevotion(player, SOLTITIA, 80)) {
+            applySunProtection(player, event);
+        }
+
+        applyBetrayedLight(player);
     }
 
     //Ritual
     public void isPlayerLookingAtSun(Player player) {
         Level level = player.level();
 
-        if (!level.isDay()) {
+        if (!isInSunLight(player)) {
             return;
         }
 
@@ -115,7 +136,11 @@ public class Soltitia extends AbstractGodBehavior {
     }
 
     private void applyLittleSun(Player player) {
-        int radius = 5; //Radius tbd
+        float radius = Math.min(15.0f, Math.max(5.0f, DevotionHandler.getDevotion(player, SOLTITIA) * 0.2f) + 5.0f); //Lv50 max value
+        float damageReduction = Math.min(25.0f, Math.max(1.0f, (DevotionHandler.getDevotion(player, SOLTITIA) - 5) * 0.25f + 1)); //Lv100 max value
+
+        if (!isInSunLight(player))
+            return;
 
         List<LivingEntity> currentEntities = player.level().getEntitiesOfClass(
                 LivingEntity.class,
@@ -129,8 +154,8 @@ public class Soltitia extends AbstractGodBehavior {
                 if (attackDamage != null && attackDamage.getModifier(LITTLE_SUN_MODIFIER_ID) == null) {
                     AttributeModifier modifier = new AttributeModifier(
                             LITTLE_SUN_MODIFIER_ID,
-                            -2.0, //Reduce amount
-                            AttributeModifier.Operation.ADD_VALUE
+                            damageReduction,
+                            AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
                     );
                     attackDamage.addTransientModifier(modifier);
                     affectedEntities.add(entity);
@@ -168,27 +193,33 @@ public class Soltitia extends AbstractGodBehavior {
     }
 
     private void applyDivineHealing(Player player) {
+        float healRegen = Math.min(0.5f, Math.max(0.05f, (DevotionHandler.getDevotion(player, SOLTITIA) * 0.005f))); //Lv100 max value
+
         if (player.getHealth() < player.getMaxHealth() || isInSunLight(player)) {
-            player.heal((float) (double) 0.01f); //Heal regen need tweak
+            player.heal((float) (double) healRegen);
         }
     }
 
     private void applyBurningJudgment(Player player, LivingEntity target, LivingIncomingDamageEvent event) {
         RandomSource random = player.level().random;
+        float setFireProbability = Math.min(1.0f, Math.max(0.1f, (DevotionHandler.getDevotion(player, SOLTITIA) * 1.14f) - 14.3f)); //Lv100 max value
+        int fireTicks = (int) Math.min(100, Math.max(20, (DevotionHandler.getDevotion(player, SOLTITIA) * 1.25f) - 25.0f)); //Lv100 max value
+        float undeadDamagePercentage = Math.min(50.0f, Math.max(10.0f, (DevotionHandler.getDevotion(player, SOLTITIA) * 0.057f) - 7.15f)); //Lv100 max value
+        float instaKillProbability = Math.min(0.01f, Math.max(0.001f, (DevotionHandler.getDevotion(player, SOLTITIA) * 0.00012f) - 0.003f)); //Lv100 max value
 
         if (!isInSunLight(player))
             return;
 
-        if (random.nextFloat() < 0.10f) {
-            target.setRemainingFireTicks(100);
+        if (random.nextFloat() < setFireProbability) {
+            target.setRemainingFireTicks(fireTicks);
         }
 
         if (target.getType().is(EntityTypeTags.UNDEAD)) {
-            event.setAmount(event.getAmount() * 1.15f);
+            event.setAmount(event.getAmount() * undeadDamagePercentage);
         }
 
-        if (random.nextFloat() < 0.01f) {
-            event.setAmount(target.getMaxHealth()); //kill
+        if (random.nextFloat() < instaKillProbability) {
+            event.setAmount(target.getMaxHealth());
         }
     }
 
@@ -197,7 +228,9 @@ public class Soltitia extends AbstractGodBehavior {
         if (!isInSunLight(player))
             return;
 
-        int radius = 5; //tbd
+        float radius = Math.min(30.0f, Math.max(10.0f, (DevotionHandler.getDevotion(player, SOLTITIA) * 0.25f) + 5.0f)); //Lv100 max value
+        float speedBonusPercentage = Math.min(25.0f, Math.max(1.0f, (DevotionHandler.getDevotion(player, SOLTITIA) * 0.3f) - 5.0f)); //Lv100 max value
+        float healRegen = Math.min(0.5f, Math.max(0.05f, (DevotionHandler.getDevotion(player, SOLTITIA) * 0.005f))); //Lv100 max value
 
         List<Player> currentPlayers = player.level().getEntitiesOfClass(
                 Player.class,
@@ -211,11 +244,15 @@ public class Soltitia extends AbstractGodBehavior {
                 if (movementSpeed != null && movementSpeed.getModifier(SHARED_LIGHT_MODIFIER_ID) == null) {
                     AttributeModifier modifier = new AttributeModifier(
                             SHARED_LIGHT_MODIFIER_ID,
-                            1.0,
-                            AttributeModifier.Operation.ADD_VALUE
+                            speedBonusPercentage,
+                            AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
                     );
                     movementSpeed.addTransientModifier(modifier);
                     affectedPlayers.add(currentPlayer);
+
+                    if (currentPlayer.getHealth() < currentPlayer.getMaxHealth()) {
+                        currentPlayer.heal((float) (double) healRegen);
+                    }
                 }
             }
         }
@@ -236,19 +273,23 @@ public class Soltitia extends AbstractGodBehavior {
         if (!isInSunLight(player))
             return;
 
+        float glowingDuration = Math.min(100.0f, Math.max(20.0f, (DevotionHandler.getDevotion(player, SOLTITIA) * 2.0f) - 100)); //Lv100 max value
+        float armorReduction = Math.min(0.75f, Math.max(0.99f, (DevotionHandler.getDevotion(player, SOLTITIA) * -0.006f) + 1.35f)); //Lv100 max value
+
+
         Scoreboard scoreboard = player.getScoreboard();
 
-        PlayerTeam playerTeam = scoreboard.getPlayerTeam("dragonsEyeTargets");
+        PlayerTeam playerTeam = scoreboard.getPlayerTeam("judgmentofLightTargets");
         if (playerTeam == null) {
-            playerTeam = scoreboard.addPlayerTeam("dragonsEyeTargets");
+            playerTeam = scoreboard.addPlayerTeam("judgmentofLightTargets");
             playerTeam.setColor(ChatFormatting.LIGHT_PURPLE);
         }
 
-        target.addEffect(new MobEffectInstance(MobEffects.GLOWING, 20, 30));
+        target.addEffect(new MobEffectInstance(MobEffects.GLOWING, (int) glowingDuration, 30));
         scoreboard.addPlayerToTeam(target.getStringUUID(), playerTeam);
 
         if (target.hasEffect(MobEffects.GLOWING)) {
-            event.getContainer().addModifier(DamageContainer.Reduction.ARMOR, (container, baseReduction) -> baseReduction * 0.75f); //Armor Reduction.
+            event.getContainer().addModifier(DamageContainer.Reduction.ARMOR, (container, baseReduction) -> baseReduction * armorReduction); //Armor Reduction.
         }
     }
 
@@ -259,8 +300,8 @@ public class Soltitia extends AbstractGodBehavior {
             if (movementSpeed != null && movementSpeed.getModifier(CURSED_SHADOW_MODIFIER_ID) == null) {
                 AttributeModifier speedModifier = new AttributeModifier(
                         CURSED_SHADOW_MODIFIER_ID,
-                        -1.0,
-                        AttributeModifier.Operation.ADD_VALUE
+                        -20.0,
+                        AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
                 );
                 movementSpeed.addTransientModifier(speedModifier);
             }
@@ -269,8 +310,8 @@ public class Soltitia extends AbstractGodBehavior {
             if (damageTaken != null && damageTaken.getModifier(CURSED_SHADOW_DAMAGE_MODIFIER_ID) == null) {
                 AttributeModifier damageModifier = new AttributeModifier(
                         CURSED_SHADOW_DAMAGE_MODIFIER_ID,
-                        -5.0,
-                        AttributeModifier.Operation.ADD_VALUE
+                        -50.0,
+                        AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
                 );
                 damageTaken.addTransientModifier(damageModifier);
             }

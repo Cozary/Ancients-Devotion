@@ -1,5 +1,6 @@
 package com.cozary.ancients_devotion.commands;
 
+import com.cozary.ancients_devotion.network.GodData;
 import com.cozary.ancients_devotion.util.DevotionHandler;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -9,6 +10,7 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 public class ModCommands {
     public static void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher) {
@@ -22,7 +24,7 @@ public class ModCommands {
                                             String god = StringArgumentType.getString(context, "god");
 
                                             DevotionHandler.setCurrentGod(player, god);
-
+                                            PacketDistributor.sendToPlayer((ServerPlayer) player, new GodData(god));
                                             context.getSource().sendSuccess(() -> Component.literal(
                                                     "Set god of " + player.getName().getString() + " to " + god), true);
                                             return 1;
