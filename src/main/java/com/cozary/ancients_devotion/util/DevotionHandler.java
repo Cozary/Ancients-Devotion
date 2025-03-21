@@ -1,5 +1,6 @@
 package com.cozary.ancients_devotion.util;
 
+import com.cozary.ancients_devotion.AncientsDevotion;
 import com.cozary.ancients_devotion.gods.core.God;
 import com.cozary.ancients_devotion.init.GodRegistry;
 import net.minecraft.world.entity.player.Player;
@@ -13,6 +14,7 @@ public class DevotionHandler {
     }
 
     public static void setDevotion(Player player, God god, float value) {
+        AncientsDevotion.LOG.info(String.valueOf(value));
         player.setData(god.getDevotionType(), Math.min(value, god.getMaxDevotion()));
     }
 
