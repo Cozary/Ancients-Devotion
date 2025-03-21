@@ -7,6 +7,7 @@ import com.cozary.ancients_devotion.init.GodRegistry;
 import com.cozary.ancients_devotion.network.GodData;
 import com.cozary.ancients_devotion.util.DevotionHandler;
 import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.EntityTypeTags;
@@ -20,6 +21,8 @@ import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Scoreboard;
 import net.neoforged.neoforge.common.damagesource.DamageContainer;
@@ -29,6 +32,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 public class Soltitia extends AbstractGodBehavior {
@@ -47,12 +51,14 @@ public class Soltitia extends AbstractGodBehavior {
         SOLTITIA = GodRegistry.GODS.get(DevotionHandler.getCurrentGod(player));
         PacketDistributor.sendToPlayer((ServerPlayer) player, new GodData(SOLTITIA.getName()));
 
-        AncientsDevotion.LOG.info("Current Devotion: {}", DevotionHandler.getDevotion(player, SOLTITIA));
+        //AncientsDevotion.LOG.info("Current Devotion: {}", DevotionHandler.getDevotion(player, SOLTITIA));
     }
 
     @Override
     public void onTick(Player player) {
         testing(player);
+
+        isPlayerLookingAtSun(player);
 
         increaseDevotion(player);
         applyLittleSun(player);
@@ -72,6 +78,29 @@ public class Soltitia extends AbstractGodBehavior {
         applyBurningJudgment(player, target, event);
         applyJudgmentOfLight(player, target, event);
         applyVowOfJustice(player, target);
+    }
+
+    //Ritual
+    public void isPlayerLookingAtSun(Player player) {
+        Level level = player.level();
+
+        if (!level.isDay()) {
+            return;
+        }
+
+        float sunAngle = level.getSunAngle(player.tickCount) + (float) Math.PI / 2; //-pi/2 moon
+        Vec3 view = player.getViewVector(1.0f).normalize();
+        Vec3 sun = new Vec3(Math.cos(sunAngle), Math.sin(sunAngle), 0f).normalize();
+
+        double dot = view.dot(sun);
+        double threshold = 0.995;
+        boolean lookingAtSun = dot >= threshold;
+
+        String msg = String.format(Locale.ROOT,
+                "SunAngle: %.3f | View: (%.3f, %.3f, %.3f) | SunDir: (%.3f, %.3f, %.3f) | Dot: %.3f | LookingAtSun: %s",
+                sunAngle, view.x, view.y, view.z, sun.x, sun.y, sun.z, dot, lookingAtSun);
+
+        player.sendSystemMessage(Component.literal(msg));
     }
 
     //Check everything have this
