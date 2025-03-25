@@ -7,6 +7,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 import static com.cozary.ancients_devotion.util.DevotionHandler.getCurrentGod;
@@ -42,6 +43,19 @@ public class EventHandler {
     }
 
     @SubscribeEvent
+    public static void onAttackPlayer(LivingIncomingDamageEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+        if (player.level().isClientSide) return;
+
+        String godName = getCurrentGod(player);
+        God god = getGod(godName);
+
+        if (god != null) {
+            god.getBehavior().onAttackPlayer(player, event.getSource().getEntity(), event);
+        }
+    }
+
+    @SubscribeEvent
     public static void onPlayerDeath(LivingDeathEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
         if (player.level().isClientSide) return;
@@ -51,6 +65,20 @@ public class EventHandler {
 
         if (god != null) {
             god.getBehavior().onPlayerDeath(player, event);
+        }
+
+    }
+
+    @SubscribeEvent
+    public static void onPlayerBreakBlock(BlockEvent.BreakEvent event) {
+        Player player = event.getPlayer();
+        if (player.level().isClientSide) return;
+
+        String godName = getCurrentGod(player);
+        God god = getGod(godName);
+
+        if (god != null) {
+            god.getBehavior().onPlayerBreakBlock(player, event);
         }
 
     }

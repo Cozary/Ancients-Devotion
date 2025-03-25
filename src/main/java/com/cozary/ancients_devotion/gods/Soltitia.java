@@ -2,18 +2,11 @@ package com.cozary.ancients_devotion.gods;
 
 import com.cozary.ancients_devotion.AncientsDevotion;
 import com.cozary.ancients_devotion.gods.core.AbstractGodBehavior;
-import com.cozary.ancients_devotion.gods.core.God;
-import com.cozary.ancients_devotion.init.GodRegistry;
-import com.cozary.ancients_devotion.network.GodData;
 import com.cozary.ancients_devotion.util.DevotionHandler;
 import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.EntityTypeTags;
-import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
@@ -30,7 +23,6 @@ import net.minecraft.world.scores.Scoreboard;
 import net.neoforged.neoforge.common.damagesource.DamageContainer;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.HashSet;
 import java.util.List;
@@ -41,8 +33,8 @@ public class Soltitia extends AbstractGodBehavior {
     private static final float PASSIVE_GAIN_RATE = 0.00005f; //Per tick
     private static final ResourceLocation LITTLE_SUN_MODIFIER_ID = ResourceLocation.fromNamespaceAndPath(AncientsDevotion.MOD_ID, "little_sun_attack_debuff");
     private static final ResourceLocation SHARED_LIGHT_MODIFIER_ID = ResourceLocation.fromNamespaceAndPath(AncientsDevotion.MOD_ID, "shared_light_speed_modifier");
-    private static final ResourceLocation CURSED_SHADOW_MODIFIER_ID = ResourceLocation.fromNamespaceAndPath(AncientsDevotion.MOD_ID, "shared_light_speed_modifier");
-    private static final ResourceLocation CURSED_SHADOW_DAMAGE_MODIFIER_ID = ResourceLocation.fromNamespaceAndPath(AncientsDevotion.MOD_ID, "shared_light_damage_modifier");
+    private static final ResourceLocation CURSED_SHADOW_MODIFIER_ID = ResourceLocation.fromNamespaceAndPath(AncientsDevotion.MOD_ID, "cursed_shadow_speed_modifier");
+    private static final ResourceLocation CURSED_SHADOW_DAMAGE_MODIFIER_ID = ResourceLocation.fromNamespaceAndPath(AncientsDevotion.MOD_ID, "cursed_shadow_damage_modifier");
     private final Set<LivingEntity> affectedEntities = new HashSet<>();
     private final Set<Player> affectedPlayers = new HashSet<>();
 
@@ -54,13 +46,13 @@ public class Soltitia extends AbstractGodBehavior {
         //Devotion
         increaseDevotion(player);
 
-        if(DevotionHandler.hasDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)), 5)){
+        if (DevotionHandler.hasDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)), 5)) {
             applyLittleSun(player);
         }
-        if(DevotionHandler.hasDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)), 10)) {
+        if (DevotionHandler.hasDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)), 10)) {
             applyDivineHealing(player);
         }
-        if(DevotionHandler.hasDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)), 20)) {
+        if (DevotionHandler.hasDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)), 20)) {
             applySharedLight(player);
         }
 
@@ -69,10 +61,10 @@ public class Soltitia extends AbstractGodBehavior {
 
     @Override
     public void onAttack(Player player, LivingEntity target, LivingIncomingDamageEvent event) {
-        if(DevotionHandler.hasDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)), 30)) {
+        if (DevotionHandler.hasDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)), 30)) {
             applyBurningJudgment(player, target, event);
         }
-        if(DevotionHandler.hasDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)), 60)) {
+        if (DevotionHandler.hasDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)), 60)) {
             applyJudgmentOfLight(player, target, event);
         }
 
@@ -81,7 +73,7 @@ public class Soltitia extends AbstractGodBehavior {
 
     @Override
     public void onPlayerDeath(Player player, LivingDeathEvent event) {
-        if(DevotionHandler.hasDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)), 80)) {
+        if (DevotionHandler.hasDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)), 80)) {
             applySunProtection(player, event);
         }
 

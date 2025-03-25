@@ -18,6 +18,15 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import java.util.Map;
 
 public class ModCommands {
+    public static final SuggestionProvider<CommandSourceStack> GOD_SUGGESTIONS = (context, builder) -> {
+        for (Map.Entry<String, God> god : GodRegistry.GODS.entrySet()) {
+            if (god.getValue().getName().toLowerCase().startsWith(builder.getRemaining().toLowerCase())) {
+                builder.suggest(god.getValue().getName());
+            }
+        }
+        return builder.buildFuture();
+    };
+
     public static void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(
                 Commands.literal("setgod")
@@ -86,15 +95,6 @@ public class ModCommands {
         );
 
     }
-
-    public static final SuggestionProvider<CommandSourceStack> GOD_SUGGESTIONS = (context, builder) -> {
-        for (Map.Entry<String, God> god : GodRegistry.GODS.entrySet()) {
-            if (god.getValue().getName().toLowerCase().startsWith(builder.getRemaining().toLowerCase())) {
-                builder.suggest(god.getValue().getName());
-            }
-        }
-        return builder.buildFuture();
-    };
 }
 
 
