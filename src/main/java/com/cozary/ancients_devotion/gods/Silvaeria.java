@@ -2,6 +2,8 @@ package com.cozary.ancients_devotion.gods;
 
 import com.cozary.ancients_devotion.AncientsDevotion;
 import com.cozary.ancients_devotion.gods.core.AbstractGodBehavior;
+import com.cozary.ancients_devotion.util.DevotionHandler;
+import net.minecraft.client.resources.model.Material;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
@@ -20,11 +22,14 @@ import net.minecraft.world.entity.animal.Fox;
 import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.event.entity.living.LivingEntityUseItemEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 
@@ -32,6 +37,61 @@ import java.util.*;
 
 public class Silvaeria extends AbstractGodBehavior {
     private static final ResourceLocation NATURAL_SHELTER_MODIFIER_ID = ResourceLocation.fromNamespaceAndPath(AncientsDevotion.MOD_ID, "natural_shelter_armor_modifier");
+    private static final float FIXED_GAIN_RATE = 0.1f;
+    private static final List<Item> VEGETAL_FOODS = List.of(
+            Items.CARROT,
+            Items.POTATO,
+            Items.BEETROOT,
+            Items.MELON_SLICE,
+            Items.PUMPKIN_SEEDS,
+            Items.WHEAT,
+            Items.BAKED_POTATO
+    );
+
+    @Override
+    public void onTick(Player player) {
+        super.onTick(player);
+        applyNaturalMimicry(player);
+        applySilentGrowth(player);
+        applyNaturalShelter(player);
+    }
+
+    @Override
+    public void onAttackPlayer(Player player, Entity target, LivingIncomingDamageEvent event) {
+        super.onAttackPlayer(player, target, event);
+        applySpiritAlly(player, event);
+    }
+
+    @Override
+    public void onPlayerBreakBlock(Player player, BlockEvent.BreakEvent event) {
+        super.onPlayerBreakBlock(player, event);
+        applyGreenResonance(player, event);
+        increaseDevotion(player,event);
+    }
+
+    @Override
+    public void onPlayerEatItem(Player player, LivingEntityUseItemEvent.Finish event) {
+        increaseDevotionOther(player, event.getItem().getItem());
+    }
+
+    private void increaseDevotion(Player player, BlockEvent.BreakEvent event) {
+        BlockState state = event.getState();
+
+        if (state.getBlock() instanceof CropBlock) {
+            CropBlock cropBlock = (CropBlock) state.getBlock();
+            int age = cropBlock.getAge(state);
+
+            if (age == 7) {
+                DevotionHandler.increaseDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)), FIXED_GAIN_RATE);
+            }
+        }
+    }
+
+    private void increaseDevotionOther(Player player, Item item){
+        if (VEGETAL_FOODS.contains(item)) {
+            DevotionHandler.increaseDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)), FIXED_GAIN_RATE);
+        }
+    }
 
     //from CropBlock idk why AT doesnt work
     protected static float getGrowthSpeed(BlockState blockState, BlockGetter p_52274_, BlockPos p_52275_) {
@@ -98,26 +158,6 @@ public class Silvaeria extends AbstractGodBehavior {
             }
 
         }
-    }
-
-    @Override
-    public void onTick(Player player) {
-        super.onTick(player);
-        applyNaturalMimicry(player);
-        applySilentGrowth(player);
-        applyNaturalShelter(player);
-    }
-
-    @Override
-    public void onAttackPlayer(Player player, Entity target, LivingIncomingDamageEvent event) {
-        super.onAttackPlayer(player, target, event);
-        applySpiritAlly(player, event);
-    }
-
-    @Override
-    public void onPlayerBreakBlock(Player player, BlockEvent.BreakEvent event) {
-        super.onPlayerBreakBlock(player, event);
-        applyGreenResonance(player, event);
     }
 
     //Doesnt reset

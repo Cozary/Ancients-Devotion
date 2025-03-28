@@ -37,7 +37,6 @@ public class GodScreen extends Screen {
             return;
 
         String godName = getCurrentGod(minecraft.player);
-        AncientsDevotion.LOG.info(godName);
         if (getGod(godName) == null) {
             AncientsDevotion.LOG.warn("El dios con nombre '{}' no se encontró.", godName);
         }

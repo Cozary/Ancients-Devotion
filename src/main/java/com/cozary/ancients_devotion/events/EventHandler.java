@@ -9,6 +9,7 @@ import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.living.LivingEntityUseItemEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
@@ -93,6 +94,19 @@ public class EventHandler {
         if (event.getEntity() instanceof ServerPlayer player) {
             String god = DevotionHandler.getCurrentGod(player);
             PacketDistributor.sendToPlayer(player, new GodData(god));
+        }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerEatItem(LivingEntityUseItemEvent.Finish event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+        if (player.level().isClientSide) return;
+
+        String godName = getCurrentGod(player);
+        God god = getGod(godName);
+
+        if (god != null) {
+            god.getBehavior().onPlayerEatItem(player, event);
         }
     }
 

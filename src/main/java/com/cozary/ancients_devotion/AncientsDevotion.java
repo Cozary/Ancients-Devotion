@@ -22,6 +22,8 @@ public class AncientsDevotion {
     public static final String MOD_ID = "ancients_devotion";
     public static final Logger LOG = LogUtils.getLogger();
 
+    //Todo add save when dead
+
 
     public AncientsDevotion(IEventBus modEventBus, ModContainer modContainer) {
         //NeoForge.EVENT_BUS.register(this);
