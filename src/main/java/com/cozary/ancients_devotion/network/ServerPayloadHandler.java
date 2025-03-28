@@ -8,7 +8,7 @@ public class ServerPayloadHandler {
 
     public static void handleGodDataOnMain(final GodData data, final IPayloadContext context) {
         //?
-        PacketDistributor.sendToPlayer((ServerPlayer) context.player(), data);
+        PacketDistributor.sendToServer(data);
     }
 }
 

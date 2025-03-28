@@ -2,13 +2,18 @@ package com.cozary.ancients_devotion.events;
 
 import com.cozary.ancients_devotion.AncientsDevotion;
 import com.cozary.ancients_devotion.gods.core.God;
+import com.cozary.ancients_devotion.network.GodData;
+import com.cozary.ancients_devotion.util.DevotionHandler;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import static com.cozary.ancients_devotion.util.DevotionHandler.getCurrentGod;
 import static com.cozary.ancients_devotion.util.DevotionHandler.getGod;
@@ -82,5 +87,14 @@ public class EventHandler {
         }
 
     }
+
+    @SubscribeEvent
+    public static void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            String god = DevotionHandler.getCurrentGod(player);
+            PacketDistributor.sendToPlayer(player, new GodData(god));
+        }
+    }
+
 
 }

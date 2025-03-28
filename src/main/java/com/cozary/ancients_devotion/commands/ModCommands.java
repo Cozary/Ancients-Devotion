@@ -74,7 +74,7 @@ public class ModCommands {
 
         dispatcher.register(
                 Commands.literal("checkdevotion")
-                        .requires(source -> source.hasPermission(2))
+                        .requires(source -> source.hasPermission(0))
                         .then(Commands.argument("player", EntityArgument.player())
                                 .executes(context -> {
                                     ServerPlayer player = EntityArgument.getPlayer(context, "player");
