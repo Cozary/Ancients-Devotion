@@ -6,6 +6,7 @@ import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.LivingEntityUseItemEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 
 public interface GodBehaviour {
@@ -20,4 +21,7 @@ public interface GodBehaviour {
     void onPlayerBreakBlock(Player player, BlockEvent.BreakEvent event);
 
     void onPlayerEatItem(Player player, LivingEntityUseItemEvent.Finish event);
+
+    void onPlayerUseItem(Player player, PlayerInteractEvent.LeftClickBlock event);
+
 }

@@ -14,6 +14,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -31,6 +32,7 @@ import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.event.entity.living.LivingEntityUseItemEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 
 import java.util.*;
@@ -47,6 +49,37 @@ public class Silvaeria extends AbstractGodBehavior {
             Items.WHEAT,
             Items.BAKED_POTATO
     );
+
+    private boolean isIronOrDiamondItem(ItemStack item) {
+        Item itemItem = item.getItem();
+        return itemItem == Items.IRON_SWORD ||
+                itemItem == Items.IRON_PICKAXE ||
+                itemItem == Items.IRON_AXE ||
+                itemItem == Items.IRON_SHOVEL ||
+                itemItem == Items.IRON_HOE ||
+                itemItem == Items.IRON_HELMET ||
+                itemItem == Items.IRON_CHESTPLATE ||
+                itemItem == Items.IRON_LEGGINGS ||
+                itemItem == Items.IRON_BOOTS ||
+                itemItem == Items.DIAMOND_SWORD ||
+                itemItem == Items.DIAMOND_PICKAXE ||
+                itemItem == Items.DIAMOND_AXE ||
+                itemItem == Items.DIAMOND_SHOVEL ||
+                itemItem == Items.DIAMOND_HOE ||
+                itemItem == Items.DIAMOND_HELMET ||
+                itemItem == Items.DIAMOND_CHESTPLATE ||
+                itemItem == Items.DIAMOND_LEGGINGS ||
+                itemItem == Items.DIAMOND_BOOTS ||
+                itemItem == Items.NETHERITE_SWORD ||
+                itemItem == Items.NETHERITE_PICKAXE ||
+                itemItem == Items.NETHERITE_AXE ||
+                itemItem == Items.NETHERITE_SHOVEL ||
+                itemItem == Items.NETHERITE_HOE ||
+                itemItem == Items.NETHERITE_HELMET ||
+                itemItem == Items.NETHERITE_CHESTPLATE ||
+                itemItem == Items.NETHERITE_LEGGINGS ||
+                itemItem == Items.NETHERITE_BOOTS;
+    }
 
     @Override
     public void onTick(Player player) {
@@ -72,6 +105,39 @@ public class Silvaeria extends AbstractGodBehavior {
     @Override
     public void onPlayerEatItem(Player player, LivingEntityUseItemEvent.Finish event) {
         increaseDevotionOther(player, event.getItem().getItem());
+    }
+
+    @Override
+    public void onAttack(Player player, LivingEntity target, LivingIncomingDamageEvent event) {
+        applyGuardianCode(player, target);
+    }
+
+    @Override
+    public void onPlayerUseItem(Player player, PlayerInteractEvent.LeftClickBlock event) {
+        applyMetalHate(player, event.getItemStack().getItem(), event);
+    }
+
+    private void applyMetalHate(Player player, Item item, PlayerInteractEvent.LeftClickBlock event){
+        if (item != Items.AIR) {
+
+            if (isIronOrDiamondItem(item.getDefaultInstance())) {
+                event.setCanceled(true);
+
+                ItemEntity itementity = new ItemEntity(player.level(), player.getX(), player.getY(), player.getZ(), item.getDefaultInstance());
+                itementity.setDefaultPickUpDelay();
+                player.level().addFreshEntity(itementity);
+
+                player.getInventory().removeItem(item.getDefaultInstance());
+                player.getInventory().removeFromSelected(true);
+            }
+        }
+    }
+
+    //All creatures are passive creatures?
+    private void applyGuardianCode(Player player, LivingEntity target) {
+        if (target.getType().getCategory() == MobCategory.CREATURE) {
+            DevotionHandler.decreaseDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)), FIXED_GAIN_RATE * 10); //Create unique variable?
+        }
     }
 
     private void increaseDevotion(Player player, BlockEvent.BreakEvent event) {

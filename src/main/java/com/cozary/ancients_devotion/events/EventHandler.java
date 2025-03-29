@@ -12,6 +12,7 @@ import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.LivingEntityUseItemEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -107,6 +108,19 @@ public class EventHandler {
 
         if (god != null) {
             god.getBehavior().onPlayerEatItem(player, event);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerUseItem(PlayerInteractEvent.LeftClickBlock event){
+        if (!(event.getEntity() instanceof Player player)) return;
+        if (player.level().isClientSide) return;
+
+        String godName = getCurrentGod(player);
+        God god = getGod(godName);
+
+        if (god != null) {
+            god.getBehavior().onPlayerUseItem(player, event);
         }
     }
 

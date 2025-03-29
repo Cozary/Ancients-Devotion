@@ -6,6 +6,7 @@ import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.LivingEntityUseItemEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 
 public abstract class AbstractGodBehavior implements GodBehaviour {
@@ -31,5 +32,9 @@ public abstract class AbstractGodBehavior implements GodBehaviour {
 
     @Override
     public void onPlayerEatItem(Player player, LivingEntityUseItemEvent.Finish event) {
+    }
+
+    @Override
+    public void onPlayerUseItem(Player player, PlayerInteractEvent.LeftClickBlock event) {
     }
 }
