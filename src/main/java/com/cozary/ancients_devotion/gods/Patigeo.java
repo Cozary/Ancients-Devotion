@@ -73,12 +73,20 @@ public class Patigeo extends AbstractGodBehavior {
     @Override
     public void onPlayerBreakBlock(Player player, BlockEvent.BreakEvent event) {
         applyEchoOfTheDepths(player, event);
+        playerBreakDiamondOre(player, event);
     }
 
     @Override
     public void onAttack(Player player, LivingEntity target, LivingIncomingDamageEvent event) {
         applyMinerArms(player, event);
         trySismo(player, target);
+    }
+
+    private static void playerBreakDiamondOre(Player player, BlockEvent.BreakEvent event){
+        if(event.getState().is(Blocks.DIAMOND_ORE) && player.getMainHandItem().isEmpty()){
+            //Set Patigeo God
+            AncientsDevotion.LOG.info("Patigeo God");
+        }
     }
 
     private static void spawnGlowingShulker(ServerLevel level, BlockPos pos, ChatFormatting color) {
