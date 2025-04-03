@@ -30,7 +30,7 @@ public class ModCommands {
     public static void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(
                 Commands.literal("setgod")
-                        .requires(source -> source.hasPermission(2))
+                        .requires(source -> source.hasPermission(0))
                         .then(Commands.argument("player", EntityArgument.player())
                                 .then(Commands.argument("god", StringArgumentType.word())
                                         .suggests(GOD_SUGGESTIONS)
