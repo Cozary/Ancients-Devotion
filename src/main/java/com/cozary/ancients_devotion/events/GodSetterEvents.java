@@ -1,0 +1,77 @@
+package com.cozary.ancients_devotion.events;
+
+import com.cozary.ancients_devotion.AncientsDevotion;
+import com.cozary.ancients_devotion.gods.core.God;
+import com.cozary.ancients_devotion.network.GodData;
+import com.cozary.ancients_devotion.util.DevotionHandler;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.living.LivingEntityUseItemEvent;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.event.level.BlockEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
+
+import java.util.Locale;
+
+import static com.cozary.ancients_devotion.gods.Soltitia.isInSunLight;
+import static com.cozary.ancients_devotion.util.DevotionHandler.getCurrentGod;
+import static com.cozary.ancients_devotion.util.DevotionHandler.getGod;
+
+@EventBusSubscriber(modid = AncientsDevotion.MOD_ID)
+public class GodSetterEvents {
+    private static int lookingAtSunTicks = 0;
+    private static final int startDevotionTicks = 20 * 60;
+
+    @SubscribeEvent
+    public static void onPlayerTick(PlayerTickEvent.Post event) {
+        Player player = event.getEntity();
+        if (player.level().isClientSide) return;
+
+        isPlayerLookingAtSun(player);
+    }
+
+    //Soltitia
+    public static void isPlayerLookingAtSun(Player player) {
+        Level level = player.level();
+
+        if (!isInSunLight(player)) {
+            return;
+        }
+
+        float sunAngle = level.getSunAngle(player.tickCount) + (float) Math.PI / 2; //-pi/2 moon
+        Vec3 view = player.getViewVector(1.0f).normalize();
+        Vec3 sun = new Vec3(Math.cos(sunAngle), Math.sin(sunAngle), 0f).normalize();
+
+        double dot = view.dot(sun);
+        double threshold = 0.995;
+        boolean lookingAtSun = dot >= threshold;
+
+        if(lookingAtSun){
+            lookingAtSunTicks += 1;
+            AncientsDevotion.LOG.info(String.valueOf(lookingAtSunTicks));
+            if(lookingAtSunTicks >= startDevotionTicks){
+                DevotionHandler.setCurrentGod(player, "Soltitia");
+                PacketDistributor.sendToPlayer((ServerPlayer) player, new GodData("Soltitia"));
+
+            }
+        }
+        else {
+            lookingAtSunTicks = 0;
+        }
+
+        String msg = String.format(Locale.ROOT,
+                "SunAngle: %.3f | View: (%.3f, %.3f, %.3f) | SunDir: (%.3f, %.3f, %.3f) | Dot: %.3f | LookingAtSun: %s",
+                sunAngle, view.x, view.y, view.z, sun.x, sun.y, sun.z, dot, lookingAtSun);
+
+        //AncientsDevotion.LOG.info(msg);
+    }
+
+}

@@ -40,8 +40,6 @@ public class Soltitia extends AbstractGodBehavior {
 
     @Override
     public void onTick(Player player) {
-        //Ritual
-        isPlayerLookingAtSun(player);
 
         //Devotion
         increaseDevotion(player);
@@ -80,31 +78,8 @@ public class Soltitia extends AbstractGodBehavior {
         applyBetrayedLight(player);
     }
 
-    //Ritual
-    public void isPlayerLookingAtSun(Player player) {
-        Level level = player.level();
-
-        if (!isInSunLight(player)) {
-            return;
-        }
-
-        float sunAngle = level.getSunAngle(player.tickCount) + (float) Math.PI / 2; //-pi/2 moon
-        Vec3 view = player.getViewVector(1.0f).normalize();
-        Vec3 sun = new Vec3(Math.cos(sunAngle), Math.sin(sunAngle), 0f).normalize();
-
-        double dot = view.dot(sun);
-        double threshold = 0.995;
-        boolean lookingAtSun = dot >= threshold;
-
-        String msg = String.format(Locale.ROOT,
-                "SunAngle: %.3f | View: (%.3f, %.3f, %.3f) | SunDir: (%.3f, %.3f, %.3f) | Dot: %.3f | LookingAtSun: %s",
-                sunAngle, view.x, view.y, view.z, sun.x, sun.y, sun.z, dot, lookingAtSun);
-
-        //AncientsDevotion.LOG.info(msg);
-    }
-
     //Check everything have this
-    public boolean isInSunLight(Player player) {
+    public static boolean isInSunLight(Player player) {
         return player.level().canSeeSky(player.blockPosition()) && player.level().isDay();
     }
 
