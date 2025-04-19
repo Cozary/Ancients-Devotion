@@ -4,6 +4,8 @@ import com.cozary.ancients_devotion.client.menu.GodScreen;
 import com.cozary.ancients_devotion.commands.ModCommands;
 import com.cozary.ancients_devotion.init.GodRegistry;
 import com.cozary.ancients_devotion.init.ModAttachmentTypes;
+import com.cozary.ancients_devotion.init.ModItems;
+import com.cozary.ancients_devotion.init.ModTabs;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.commands.Commands;
@@ -31,6 +33,9 @@ public class AncientsDevotion {
         ModAttachmentTypes.ATTACHMENT_TYPES.register(modEventBus);
 
         modEventBus.addListener(this::commonSetup);
+
+        ModItems.ITEMS.register(modEventBus);
+        ModTabs.CREATIVE_MODE_TAB.register(modEventBus);
 
         NeoForge.EVENT_BUS.addListener(this::registerCommands);
 

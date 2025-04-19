@@ -2,6 +2,7 @@ package com.cozary.ancients_devotion.events;
 
 import com.cozary.ancients_devotion.AncientsDevotion;
 import com.cozary.ancients_devotion.gods.core.God;
+import com.cozary.ancients_devotion.init.ModItems;
 import com.cozary.ancients_devotion.network.GodData;
 import com.cozary.ancients_devotion.util.DevotionHandler;
 import net.minecraft.server.level.ServerPlayer;
@@ -42,7 +43,7 @@ public class GodSetterEvents {
     public static void isPlayerLookingAtSun(Player player) {
         Level level = player.level();
 
-        if (!isInSunLight(player)) {
+        if (!isInSunLight(player) || !(player.getInventory().countItem(ModItems.MEDALLION.get()) > 0)) { //check if have medallion in inventory
             return;
         }
 
@@ -71,7 +72,7 @@ public class GodSetterEvents {
                 "SunAngle: %.3f | View: (%.3f, %.3f, %.3f) | SunDir: (%.3f, %.3f, %.3f) | Dot: %.3f | LookingAtSun: %s",
                 sunAngle, view.x, view.y, view.z, sun.x, sun.y, sun.z, dot, lookingAtSun);
 
-        //AncientsDevotion.LOG.info(msg);
+        AncientsDevotion.LOG.info(msg);
     }
 
 }
