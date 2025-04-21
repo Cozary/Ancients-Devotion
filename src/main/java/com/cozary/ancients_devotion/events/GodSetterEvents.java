@@ -5,9 +5,13 @@ import com.cozary.ancients_devotion.gods.core.God;
 import com.cozary.ancients_devotion.init.ModItems;
 import com.cozary.ancients_devotion.network.GodData;
 import com.cozary.ancients_devotion.util.DevotionHandler;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.CropBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -23,6 +27,8 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import java.util.Locale;
 
 import static com.cozary.ancients_devotion.gods.Soltitia.isInSunLight;
+import static com.cozary.ancients_devotion.init.ModAttachmentTypes.CURRENT_GOD;
+import static com.cozary.ancients_devotion.init.ModAttachmentTypes.SILVAERIA_CROPS_COUNT;
 import static com.cozary.ancients_devotion.util.DevotionHandler.getCurrentGod;
 import static com.cozary.ancients_devotion.util.DevotionHandler.getGod;
 
@@ -37,6 +43,14 @@ public class GodSetterEvents {
         if (player.level().isClientSide) return;
 
         isPlayerLookingAtSun(player);
+    }
+
+    @SubscribeEvent
+    public static void onPlayerBreakBlock(BlockEvent.BreakEvent event) {
+        Player player = event.getPlayer();
+        if (player.level().isClientSide) return;
+
+        havePlayerHarvest(player, event.getState(), event.getState().getBlock());
     }
 
     //Soltitia
@@ -75,4 +89,27 @@ public class GodSetterEvents {
         AncientsDevotion.LOG.info(msg);
     }
 
+
+    //Silvaeria
+    public static void havePlayerHarvest(Player player, BlockState blockState, Block block) {
+        Level level = player.level();
+
+        if (!(player.getInventory().countItem(ModItems.MEDALLION.get()) > 0)) { //check if have medallion in inventory
+            return;
+        }
+
+        if (block instanceof CropBlock cropBlock) {
+            if (!level.isClientSide && cropBlock.isMaxAge(blockState)) {
+                int count = player.getData(SILVAERIA_CROPS_COUNT);
+                count++;
+                player.setData(SILVAERIA_CROPS_COUNT, count);
+
+                if (count >= 64) {
+                    DevotionHandler.setCurrentGod(player, "Silvaeria");
+                    PacketDistributor.sendToPlayer((ServerPlayer) player, new GodData("Silvaeria"));
+                }
+            }
+        }
+
+    }
 }
