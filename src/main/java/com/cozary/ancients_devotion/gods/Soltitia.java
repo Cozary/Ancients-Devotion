@@ -249,7 +249,10 @@ public class Soltitia extends AbstractGodBehavior {
 
     private void applyCursedShadow(Player player) {
         if (!isInSunLight(player)) {
+
+            //Decreasing Devotion
             DevotionHandler.decreaseDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)), PASSIVE_GAIN_RATE / 2); //Create unique variable?
+
             AttributeInstance movementSpeed = player.getAttribute(Attributes.MOVEMENT_SPEED);
             if (movementSpeed != null && movementSpeed.getModifier(CURSED_SHADOW_MODIFIER_ID) == null) {
                 AttributeModifier speedModifier = new AttributeModifier(
