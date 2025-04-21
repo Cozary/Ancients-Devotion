@@ -3,6 +3,7 @@ package com.cozary.ancients_devotion.gods;
 import com.cozary.ancients_devotion.AncientsDevotion;
 import com.cozary.ancients_devotion.gods.core.AbstractGodBehavior;
 import com.cozary.ancients_devotion.util.DevotionHandler;
+import com.cozary.ancients_devotion.util.EntityUtils;
 import net.minecraft.client.resources.model.Material;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -22,6 +23,7 @@ import net.minecraft.world.entity.animal.Bee;
 import net.minecraft.world.entity.animal.Fox;
 import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.monster.Husk;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -50,36 +52,36 @@ public class Silvaeria extends AbstractGodBehavior {
             Items.BAKED_POTATO
     );
 
-    private boolean isIronOrDiamondItem(ItemStack item) {
-        Item itemItem = item.getItem();
-        return itemItem == Items.IRON_SWORD ||
-                itemItem == Items.IRON_PICKAXE ||
-                itemItem == Items.IRON_AXE ||
-                itemItem == Items.IRON_SHOVEL ||
-                itemItem == Items.IRON_HOE ||
-                itemItem == Items.IRON_HELMET ||
-                itemItem == Items.IRON_CHESTPLATE ||
-                itemItem == Items.IRON_LEGGINGS ||
-                itemItem == Items.IRON_BOOTS ||
-                itemItem == Items.DIAMOND_SWORD ||
-                itemItem == Items.DIAMOND_PICKAXE ||
-                itemItem == Items.DIAMOND_AXE ||
-                itemItem == Items.DIAMOND_SHOVEL ||
-                itemItem == Items.DIAMOND_HOE ||
-                itemItem == Items.DIAMOND_HELMET ||
-                itemItem == Items.DIAMOND_CHESTPLATE ||
-                itemItem == Items.DIAMOND_LEGGINGS ||
-                itemItem == Items.DIAMOND_BOOTS ||
-                itemItem == Items.NETHERITE_SWORD ||
-                itemItem == Items.NETHERITE_PICKAXE ||
-                itemItem == Items.NETHERITE_AXE ||
-                itemItem == Items.NETHERITE_SHOVEL ||
-                itemItem == Items.NETHERITE_HOE ||
-                itemItem == Items.NETHERITE_HELMET ||
-                itemItem == Items.NETHERITE_CHESTPLATE ||
-                itemItem == Items.NETHERITE_LEGGINGS ||
-                itemItem == Items.NETHERITE_BOOTS;
-    }
+    private static final List<Item> IRON_OF_DIAMOND_ITEM = List.of(
+            Items.IRON_SWORD,
+            Items.IRON_PICKAXE,
+            Items.IRON_AXE,
+            Items.IRON_SHOVEL,
+            Items.IRON_HOE,
+            Items.IRON_HELMET,
+            Items.IRON_CHESTPLATE,
+            Items.IRON_LEGGINGS,
+            Items.IRON_BOOTS,
+            Items.DIAMOND_SWORD,
+            Items.DIAMOND_PICKAXE,
+            Items.DIAMOND_AXE,
+            Items.DIAMOND_SHOVEL,
+            Items.DIAMOND_HOE,
+            Items.DIAMOND_HELMET,
+            Items.DIAMOND_CHESTPLATE,
+            Items.DIAMOND_LEGGINGS,
+            Items.DIAMOND_BOOTS,
+            Items.NETHERITE_SWORD,
+            Items.NETHERITE_PICKAXE,
+            Items.NETHERITE_AXE,
+            Items.NETHERITE_SHOVEL,
+            Items.NETHERITE_HOE,
+            Items.NETHERITE_HELMET,
+            Items.NETHERITE_CHESTPLATE,
+            Items.NETHERITE_LEGGINGS,
+            Items.NETHERITE_BOOTS
+    );
+
 
     @Override
     public void onTick(Player player) {
@@ -120,7 +122,7 @@ public class Silvaeria extends AbstractGodBehavior {
     private void applyMetalHate(Player player, Item item, PlayerInteractEvent.LeftClickBlock event){
         if (item != Items.AIR) {
 
-            if (isIronOrDiamondItem(item.getDefaultInstance())) {
+            if (IRON_OF_DIAMOND_ITEM.contains(item)) {
                 event.setCanceled(true);
 
                 ItemEntity itementity = new ItemEntity(player.level(), player.getX(), player.getY(), player.getZ(), item.getDefaultInstance());
@@ -226,14 +228,36 @@ public class Silvaeria extends AbstractGodBehavior {
         }
     }
 
-    //Doesnt reset
     private void applyNaturalMimicry(Player player) {
         player.level().getEntitiesOfClass(Mob.class, player.getBoundingBox().inflate(64))
                 .forEach(mob -> {
+
+                    AttributeInstance followRangeAttribute = mob.getAttribute(Attributes.FOLLOW_RANGE);
+
+                    AttributeModifier attributeModifierMin = new AttributeModifier(
+                            ResourceLocation.fromNamespaceAndPath(AncientsDevotion.MOD_ID, "natural_mimicry_follow_range_max"),
+                            -followRangeAttribute.getBaseValue() / 2,
+                            AttributeModifier.Operation.ADD_VALUE
+                    );
+
+
+                    AttributeModifier attributeModifierMax = new AttributeModifier(
+                            ResourceLocation.fromNamespaceAndPath(AncientsDevotion.MOD_ID, "natural_mimicry_follow_range_min"),
+                            -followRangeAttribute.getBaseValue() * 0.75,
+                            AttributeModifier.Operation.ADD_VALUE
+                    );
+
                     if (player.isShiftKeyDown()) {
-                        Objects.requireNonNull(mob.getAttribute(Attributes.FOLLOW_RANGE)).setBaseValue(Objects.requireNonNull(mob.getAttribute(Attributes.FOLLOW_RANGE)).getBaseValue() / 2);
+
+                        EntityUtils.removeAttributeModifier(followRangeAttribute, attributeModifierMin);
+
+                        EntityUtils.applyAttributeModifier(followRangeAttribute, attributeModifierMax);
+
                     } else {
-                        Objects.requireNonNull(mob.getAttribute(Attributes.FOLLOW_RANGE)).setBaseValue(Objects.requireNonNull(mob.getAttribute(Attributes.FOLLOW_RANGE)).getBaseValue());
+
+                        EntityUtils.removeAttributeModifier(followRangeAttribute, attributeModifierMax);
+
+                        EntityUtils.applyAttributeModifier(followRangeAttribute, attributeModifierMin);
                     }
                 });
     }
