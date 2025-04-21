@@ -31,4 +31,9 @@ public class ModAttachmentTypes {
             "patigeo_devotion", () -> AttachmentType.builder(() -> 0.0f).serialize(Codec.FLOAT).copyOnDeath().build()
     );
 
+    //
+    public static final Supplier<AttachmentType<Integer>> SILVAERIA_CROPS_COUNT = ATTACHMENT_TYPES.register(
+            "silvaeria_crops_count", () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).copyOnDeath().build()
+    );
+
 }
