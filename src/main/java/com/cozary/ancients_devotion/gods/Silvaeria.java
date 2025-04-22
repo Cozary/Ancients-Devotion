@@ -9,6 +9,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BiomeTags;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
@@ -32,6 +33,7 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.entity.living.LivingEntityUseItemEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
@@ -89,6 +91,7 @@ public class Silvaeria extends AbstractGodBehavior {
         applyNaturalMimicry(player);
         applySilentGrowth(player);
         applyNaturalShelter(player);
+        applyOneWithTheWood(player);
     }
 
     @Override
@@ -117,6 +120,10 @@ public class Silvaeria extends AbstractGodBehavior {
     @Override
     public void onPlayerUseItem(Player player, PlayerInteractEvent.LeftClickBlock event) {
         applyMetalHate(player, event.getItemStack().getItem(), event);
+    }
+
+    private void applyOneWithTheWood(Player player){
+
     }
 
     private void applyMetalHate(Player player, Item item, PlayerInteractEvent.LeftClickBlock event){
@@ -262,7 +269,7 @@ public class Silvaeria extends AbstractGodBehavior {
                 });
     }
 
-    //Maybe make bees not dying from this :c
+    //Todo Maybe make bees not dying from this :c
     private void applySpiritAlly(Player player, LivingIncomingDamageEvent event) {
         if (event.getAmount() > 0) {
             player.level().getEntitiesOfClass(Entity.class, player.getBoundingBox().inflate(32))
@@ -288,6 +295,8 @@ public class Silvaeria extends AbstractGodBehavior {
     }
 
     //from CropBlock idk why AT doesnt work
+    //Todo trees and everything that can grow?
+    //todo nerf
     protected void randomTick(BlockState blockState, ServerLevel serverLevel, BlockPos blockPos, RandomSource randomSource, CropBlock cropBlock) {
         if (!serverLevel.isAreaLoaded(blockPos, 1))
             return; // Forge: prevent loading unloaded chunks when checking neighbor's light
@@ -318,12 +327,12 @@ public class Silvaeria extends AbstractGodBehavior {
         Set<BlockPos> visited = new HashSet<>();
         blocksToBreak.add(pos);
 
-        while (!blocksToBreak.isEmpty()) {
+        while (!blocksToBreak.isEmpty() && visited.size() < 64) {
             BlockPos currentPos = blocksToBreak.poll();
             if (visited.contains(currentPos)) continue;
             visited.add(currentPos);
 
-            if (player.level().getBlockState(currentPos).is(BlockTags.LOGS)) {
+            if (player.level().getBlockState(currentPos).is(BlockTags.LOGS) || player.level().getBlockState(currentPos).is(BlockTags.LEAVES)) {
                 player.level().destroyBlock(currentPos, true);
                 for (Direction direction : Direction.values()) {
                     BlockPos newPos = currentPos.relative(direction);
@@ -334,4 +343,6 @@ public class Silvaeria extends AbstractGodBehavior {
             }
         }
     }
+
+
 }
