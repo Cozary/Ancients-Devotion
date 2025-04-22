@@ -113,7 +113,7 @@ public class EventHandler {
 
     @SubscribeEvent
     public static void onPlayerUseItem(PlayerInteractEvent.LeftClickBlock event){
-        if (!(event.getEntity() instanceof Player player)) return;
+        Player player = event.getEntity();
         if (player.level().isClientSide) return;
 
         String godName = getCurrentGod(player);
@@ -123,6 +123,5 @@ public class EventHandler {
             god.getBehavior().onPlayerUseItem(player, event);
         }
     }
-
 
 }
