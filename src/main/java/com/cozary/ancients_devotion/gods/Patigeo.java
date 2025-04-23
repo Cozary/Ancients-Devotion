@@ -73,73 +73,12 @@ public class Patigeo extends AbstractGodBehavior {
     @Override
     public void onPlayerBreakBlock(Player player, BlockEvent.BreakEvent event) {
         applyEchoOfTheDepths(player, event);
-        playerBreakDiamondOre(player, event);
     }
 
     @Override
     public void onAttack(Player player, LivingEntity target, LivingIncomingDamageEvent event) {
         applyMinerArms(player, event);
         trySismo(player, target);
-    }
-
-    private static void playerBreakDiamondOre(Player player, BlockEvent.BreakEvent event){
-        if(event.getState().is(Blocks.DIAMOND_ORE) && player.getMainHandItem().isEmpty()){
-            //Set Patigeo God
-            AncientsDevotion.LOG.info("Patigeo God");
-        }
-    }
-
-    private static void spawnGlowingShulker(ServerLevel level, BlockPos pos, ChatFormatting color) {
-        Shulker shulker = new Shulker(EntityType.SHULKER, level);
-        shulker.moveTo(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, 0, 0);
-        shulker.setInvisible(true);
-        shulker.setNoAi(true);
-        shulker.setInvulnerable(true);
-        shulker.setSilent(true);
-        shulker.addTag("voice_of_the_earth_shulker");
-
-        // Assign team
-        String teamName = "voice_earth_" + color.getName();
-        assignShulkerToTeam(level, shulker, teamName, color);
-
-        level.addFreshEntity(shulker);
-    }
-
-    private static void assignShulkerToTeam(ServerLevel level, Shulker shulker, String teamName, ChatFormatting color) {
-        Scoreboard scoreboard = level.getScoreboard();
-        PlayerTeam team = scoreboard.getPlayerTeam(teamName);
-        if (team == null) {
-            team = scoreboard.addPlayerTeam(teamName);
-            team.setColor(color);
-            team.setSeeFriendlyInvisibles(false);
-            team.setAllowFriendlyFire(false);
-        }
-        scoreboard.addPlayerToTeam(shulker.getStringUUID(), team);
-        shulker.setGlowingTag(true);
-    }
-
-    private static void removeShulkerAtPos(ServerLevel level, BlockPos pos) {
-        level.getEntitiesOfClass(Shulker.class, new AABB(pos).inflate(0.5),
-                shulker -> shulker.getTags().contains("voice_of_the_earth_shulker")).forEach(shulker -> shulker.remove(Entity.RemovalReason.DISCARDED));
-    }
-
-    private static boolean hasShulkerAtPos(ServerLevel level, BlockPos pos) {
-        return !level.getEntitiesOfClass(Shulker.class, new AABB(pos).inflate(0.5),
-                shulker -> shulker.getTags().contains("voice_of_the_earth_shulker")).isEmpty();
-    }
-
-    private static ChatFormatting getColorForOre(BlockState state) {
-        Block block = state.getBlock();
-        if (block == Blocks.COAL_ORE) return ChatFormatting.DARK_GRAY;
-        if (block == Blocks.IRON_ORE) return ChatFormatting.GRAY;
-        if (block == Blocks.COPPER_ORE) return ChatFormatting.GOLD;
-        if (block == Blocks.GOLD_ORE) return ChatFormatting.YELLOW;
-        if (block == Blocks.REDSTONE_ORE) return ChatFormatting.RED;
-        if (block == Blocks.DIAMOND_ORE) return ChatFormatting.AQUA;
-        if (block == Blocks.EMERALD_ORE) return ChatFormatting.GREEN;
-        if (block == Blocks.NETHER_QUARTZ_ORE) return ChatFormatting.WHITE;
-        if (block == Blocks.ANCIENT_DEBRIS) return ChatFormatting.DARK_RED;
-        return ChatFormatting.LIGHT_PURPLE;
     }
 
     private static boolean isOre(BlockState state) {
@@ -231,6 +170,8 @@ public class Patigeo extends AbstractGodBehavior {
         }
     }
 
+    //Todo move block upwards
+    //Todo make the entity to take damage when hit by the "shock wave."
     public static void trySismo(Player player, LivingEntity target) {
         Level level = player.level();
         float chance = 1;
@@ -360,6 +301,59 @@ public class Patigeo extends AbstractGodBehavior {
                 removeShulkerAtPos(serverLevel, pos);
             }
         }
+    }
+
+    private static void spawnGlowingShulker(ServerLevel level, BlockPos pos, ChatFormatting color) {
+        Shulker shulker = new Shulker(EntityType.SHULKER, level);
+        shulker.moveTo(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, 0, 0);
+        shulker.setInvisible(true);
+        shulker.setNoAi(true);
+        shulker.setInvulnerable(true);
+        shulker.setSilent(true);
+        shulker.addTag("voice_of_the_earth_shulker");
+
+        // Assign team
+        String teamName = "voice_earth_" + color.getName();
+        assignShulkerToTeam(level, shulker, teamName, color);
+
+        level.addFreshEntity(shulker);
+    }
+
+    private static void assignShulkerToTeam(ServerLevel level, Shulker shulker, String teamName, ChatFormatting color) {
+        Scoreboard scoreboard = level.getScoreboard();
+        PlayerTeam team = scoreboard.getPlayerTeam(teamName);
+        if (team == null) {
+            team = scoreboard.addPlayerTeam(teamName);
+            team.setColor(color);
+            team.setSeeFriendlyInvisibles(false);
+            team.setAllowFriendlyFire(false);
+        }
+        scoreboard.addPlayerToTeam(shulker.getStringUUID(), team);
+        shulker.setGlowingTag(true);
+    }
+
+    private static void removeShulkerAtPos(ServerLevel level, BlockPos pos) {
+        level.getEntitiesOfClass(Shulker.class, new AABB(pos).inflate(0.5),
+                shulker -> shulker.getTags().contains("voice_of_the_earth_shulker")).forEach(shulker -> shulker.remove(Entity.RemovalReason.DISCARDED));
+    }
+
+    private static boolean hasShulkerAtPos(ServerLevel level, BlockPos pos) {
+        return !level.getEntitiesOfClass(Shulker.class, new AABB(pos).inflate(0.5),
+                shulker -> shulker.getTags().contains("voice_of_the_earth_shulker")).isEmpty();
+    }
+
+    private static ChatFormatting getColorForOre(BlockState state) {
+        Block block = state.getBlock();
+        if (block == Blocks.COAL_ORE) return ChatFormatting.DARK_GRAY;
+        if (block == Blocks.IRON_ORE) return ChatFormatting.GRAY;
+        if (block == Blocks.COPPER_ORE) return ChatFormatting.GOLD;
+        if (block == Blocks.GOLD_ORE) return ChatFormatting.YELLOW;
+        if (block == Blocks.REDSTONE_ORE) return ChatFormatting.RED;
+        if (block == Blocks.DIAMOND_ORE) return ChatFormatting.AQUA;
+        if (block == Blocks.EMERALD_ORE) return ChatFormatting.GREEN;
+        if (block == Blocks.NETHER_QUARTZ_ORE) return ChatFormatting.WHITE;
+        if (block == Blocks.ANCIENT_DEBRIS) return ChatFormatting.DARK_RED;
+        return ChatFormatting.LIGHT_PURPLE;
     }
 
     //Copy from Soltitia
