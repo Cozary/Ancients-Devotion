@@ -22,6 +22,7 @@ public interface GodBehaviour {
 
     void onPlayerEatItem(Player player, LivingEntityUseItemEvent.Finish event);
 
-    void onPlayerUseItem(Player player, PlayerInteractEvent.LeftClickBlock event);
+    void onPlayerUseItemOnBlock(Player player, PlayerInteractEvent.LeftClickBlock event);
 
+    void onPlayerUseItem(Player player, LivingEntityUseItemEvent event);
 }

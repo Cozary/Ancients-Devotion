@@ -35,6 +35,10 @@ public abstract class AbstractGodBehavior implements GodBehaviour {
     }
 
     @Override
-    public void onPlayerUseItem(Player player, PlayerInteractEvent.LeftClickBlock event) {
+    public void onPlayerUseItemOnBlock(Player player, PlayerInteractEvent.LeftClickBlock event) {
+    }
+
+    @Override
+    public void onPlayerUseItem(Player player, LivingEntityUseItemEvent event) {
     }
 }
