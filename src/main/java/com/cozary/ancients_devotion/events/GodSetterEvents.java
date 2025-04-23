@@ -1,25 +1,20 @@
 package com.cozary.ancients_devotion.events;
 
 import com.cozary.ancients_devotion.AncientsDevotion;
-import com.cozary.ancients_devotion.gods.core.God;
 import com.cozary.ancients_devotion.init.ModItems;
 import com.cozary.ancients_devotion.network.GodData;
 import com.cozary.ancients_devotion.util.DevotionHandler;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
-import net.neoforged.neoforge.event.entity.living.LivingEntityUseItemEvent;
-import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -27,10 +22,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import java.util.Locale;
 
 import static com.cozary.ancients_devotion.gods.Soltitia.isInSunLight;
-import static com.cozary.ancients_devotion.init.ModAttachmentTypes.CURRENT_GOD;
 import static com.cozary.ancients_devotion.init.ModAttachmentTypes.SILVAERIA_CROPS_COUNT;
-import static com.cozary.ancients_devotion.util.DevotionHandler.getCurrentGod;
-import static com.cozary.ancients_devotion.util.DevotionHandler.getGod;
 
 @EventBusSubscriber(modid = AncientsDevotion.MOD_ID)
 public class GodSetterEvents {
@@ -51,6 +43,7 @@ public class GodSetterEvents {
         if (player.level().isClientSide) return;
 
         havePlayerHarvest(player, event.getState(), event.getState().getBlock());
+        havePlayerBreakDiamond(player, event.getState(), event.getState().getBlock());
     }
 
     //Soltitia
@@ -86,7 +79,7 @@ public class GodSetterEvents {
                 "SunAngle: %.3f | View: (%.3f, %.3f, %.3f) | SunDir: (%.3f, %.3f, %.3f) | Dot: %.3f | LookingAtSun: %s",
                 sunAngle, view.x, view.y, view.z, sun.x, sun.y, sun.z, dot, lookingAtSun);
 
-        AncientsDevotion.LOG.info(msg);
+        //AncientsDevotion.LOG.info(msg);
     }
 
 
@@ -112,4 +105,20 @@ public class GodSetterEvents {
         }
 
     }
+
+    //Patigeo
+    public static void havePlayerBreakDiamond(Player player, BlockState state, Block block) {
+        Level level = player.level();
+
+        if (!(player.getInventory().countItem(ModItems.MEDALLION.get()) > 0)) { //check if have medallion in inventory
+            return;
+        }
+
+        if (block == Blocks.DIAMOND_ORE && player.getMainHandItem().is(Items.AIR)) {
+            DevotionHandler.setCurrentGod(player, "Patigeo");
+            PacketDistributor.sendToPlayer((ServerPlayer) player, new GodData("Patigeo"));
+        }
+
+    }
+
 }
