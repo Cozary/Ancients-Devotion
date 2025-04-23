@@ -112,8 +112,21 @@ public class EventHandler {
     }
 
     @SubscribeEvent
-    public static void onPlayerUseItem(PlayerInteractEvent.LeftClickBlock event){
+    public static void onPlayerUseItemOnBlock(PlayerInteractEvent.LeftClickBlock event){
         Player player = event.getEntity();
+        if (player.level().isClientSide) return;
+
+        String godName = getCurrentGod(player);
+        God god = getGod(godName);
+
+        if (god != null) {
+            god.getBehavior().onPlayerUseItemOnBlock(player, event);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerUseItem(LivingEntityUseItemEvent.Start event){
+        if (!(event.getEntity() instanceof Player player)) return;
         if (player.level().isClientSide) return;
 
         String godName = getCurrentGod(player);

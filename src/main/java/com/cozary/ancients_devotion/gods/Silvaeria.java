@@ -47,7 +47,7 @@ public class Silvaeria extends AbstractGodBehavior {
             Items.BAKED_POTATO
     );
 
-    private static final List<Item> IRON_OF_DIAMOND_ITEM = List.of(
+    private static final List<Item> METAL_ITEM_LIST = List.of(
             Items.IRON_SWORD,
             Items.IRON_PICKAXE,
             Items.IRON_AXE,
@@ -111,10 +111,29 @@ public class Silvaeria extends AbstractGodBehavior {
     }
 
     @Override
-    public void onPlayerUseItem(Player player, PlayerInteractEvent.LeftClickBlock event) {
+    public void onPlayerUseItemOnBlock(Player player, PlayerInteractEvent.LeftClickBlock event) {
         applyMetalHate(player, event.getItemStack().getItem(), event);
     }
 
+    @Override
+    public void onPlayerUseItem(Player player, LivingEntityUseItemEvent event) {
+        applyVeganism(player, event.getItem().getItem());
+    }
+
+    private void applyVeganism(Player player, Item item){
+        if (item != Items.AIR) {
+
+            if (!VEGETAL_FOODS.contains(item)) {
+
+                player.getInventory().removeItem(item.getDefaultInstance());
+                player.getInventory().removeFromSelected(true);
+
+                ItemEntity itementity = new ItemEntity(player.level(), player.getX(), player.getY(), player.getZ(), item.getDefaultInstance());
+                itementity.setDefaultPickUpDelay();
+                player.level().addFreshEntity(itementity);
+            }
+        }
+    }
 
     //Todo make this bonuses disappear when not holding.
     private void applyOneWithTheWood(Player player) {
@@ -178,7 +197,7 @@ public class Silvaeria extends AbstractGodBehavior {
     private void applyMetalHate(Player player, Item item, PlayerInteractEvent.LeftClickBlock event){
         if (item != Items.AIR) {
 
-            if (IRON_OF_DIAMOND_ITEM.contains(item)) {
+            if (METAL_ITEM_LIST.contains(item)) {
                 event.setCanceled(true);
 
                 ItemEntity itementity = new ItemEntity(player.level(), player.getX(), player.getY(), player.getZ(), item.getDefaultInstance());
