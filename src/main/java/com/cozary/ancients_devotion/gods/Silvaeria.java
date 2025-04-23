@@ -4,19 +4,15 @@ import com.cozary.ancients_devotion.AncientsDevotion;
 import com.cozary.ancients_devotion.gods.core.AbstractGodBehavior;
 import com.cozary.ancients_devotion.util.DevotionHandler;
 import com.cozary.ancients_devotion.util.EntityUtils;
-import net.minecraft.client.resources.model.Material;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BiomeTags;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -24,16 +20,13 @@ import net.minecraft.world.entity.animal.Bee;
 import net.minecraft.world.entity.animal.Fox;
 import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.entity.monster.Husk;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
+import net.minecraft.world.item.*;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.entity.living.LivingEntityUseItemEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
@@ -122,8 +115,64 @@ public class Silvaeria extends AbstractGodBehavior {
         applyMetalHate(player, event.getItemStack().getItem(), event);
     }
 
-    private void applyOneWithTheWood(Player player){
 
+    //Todo make this bonuses disappear when not holding.
+    private void applyOneWithTheWood(Player player) {
+        ItemStack mainHand = player.getMainHandItem();
+
+        if (mainHand.getItem() instanceof TieredItem tieredItem && tieredItem.getTier() == Tiers.WOOD) {
+            float devotion = DevotionHandler.getDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)));
+            if (devotion > 0) {
+                float bonusAttackSpeed = 10f * devotion;
+                float bonusAttackDamage = 10f * devotion;
+
+                applyModifiers(mainHand, bonusAttackSpeed, bonusAttackDamage);
+                modifyDurability(mainHand, devotion);
+
+            }
+        }
+    }
+
+    private void applyModifiers(ItemStack stack, float bonusAttackSpeed, float bonusAttackDamage) {
+        ItemAttributeModifiers.Builder builder = ItemAttributeModifiers.builder();
+
+        AttributeModifier attackSpeedModifier = new AttributeModifier(
+                ResourceLocation.fromNamespaceAndPath(AncientsDevotion.MOD_ID, "one_with_the_wood_attack_speed"),
+                bonusAttackSpeed,
+                AttributeModifier.Operation.ADD_VALUE
+        );
+
+        AttributeModifier attackDamageModifier = new AttributeModifier(
+                ResourceLocation.fromNamespaceAndPath(AncientsDevotion.MOD_ID, "one_with_the_wood_attack_damage"),
+                bonusAttackDamage,
+                AttributeModifier.Operation.ADD_VALUE
+        );
+
+        builder.add(Attributes.ATTACK_SPEED, attackSpeedModifier, EquipmentSlotGroup.MAINHAND);
+        builder.add(Attributes.ATTACK_DAMAGE, attackDamageModifier, EquipmentSlotGroup.MAINHAND);
+
+        stack.set(DataComponents.ATTRIBUTE_MODIFIERS, builder.build());
+    }
+
+    private void modifyDurability(ItemStack stack, float devotion) {
+        if (!(stack.getItem() instanceof TieredItem tieredItem)) return;
+
+        int baseMaxDurability = tieredItem.getTier().getUses();
+        int currentMaxDamage = stack.getMaxDamage();
+        int currentDamage = stack.getDamageValue();
+
+        int newMaxDurability = (int) (baseMaxDurability * Math.max(1f, devotion));
+
+        AncientsDevotion.LOG.info("Current max: {}", currentMaxDamage);
+        AncientsDevotion.LOG.info("Modified max: {}", newMaxDurability);
+
+        if (newMaxDurability <= currentMaxDamage) return;
+
+        float durabilityPercent = 1f - (currentDamage / (float) currentMaxDamage);
+        int newDamageValue = (int) ((1f - durabilityPercent) * newMaxDurability);
+
+        stack.set(DataComponents.MAX_DAMAGE, newMaxDurability);
+        stack.set(DataComponents.DAMAGE, newDamageValue);
     }
 
     private void applyMetalHate(Player player, Item item, PlayerInteractEvent.LeftClickBlock event){

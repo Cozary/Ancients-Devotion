@@ -1,5 +1,6 @@
 package com.cozary.ancients_devotion.init;
 
+import com.cozary.ancients_devotion.AncientsDevotion;
 import com.mojang.serialization.Codec;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -7,11 +8,9 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 import java.util.function.Supplier;
 
-import static net.neoforged.neoforge.internal.versions.neoforge.NeoForgeVersion.MOD_ID;
-
 public class ModAttachmentTypes {
 
-    public static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES = DeferredRegister.create(NeoForgeRegistries.ATTACHMENT_TYPES, MOD_ID);
+    public static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES = DeferredRegister.create(NeoForgeRegistries.ATTACHMENT_TYPES, AncientsDevotion.MOD_ID);
 
     public static final Supplier<AttachmentType<String>> CURRENT_GOD = ATTACHMENT_TYPES.register(
             "current_god", () -> AttachmentType.builder(() -> "").serialize(Codec.STRING).copyOnDeath().build()
