@@ -106,7 +106,7 @@ public class Silvaeria extends AbstractGodBehavior {
     }
 
     @Override
-    public void onAttack(Player player, LivingEntity target, LivingIncomingDamageEvent event) {
+    public void onAttackEntity(Player player, LivingEntity target, LivingIncomingDamageEvent event) {
         applyGuardianCode(player, target);
     }
 

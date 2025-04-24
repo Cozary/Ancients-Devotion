@@ -58,7 +58,7 @@ public class Soltitia extends AbstractGodBehavior {
     }
 
     @Override
-    public void onAttack(Player player, LivingEntity target, LivingIncomingDamageEvent event) {
+    public void onAttackEntity(Player player, LivingEntity target, LivingIncomingDamageEvent event) {
         if (DevotionHandler.hasDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)), 30)) {
             applyBurningJudgment(player, target, event);
         }

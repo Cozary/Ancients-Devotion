@@ -45,7 +45,7 @@ public class EventHandler {
         God god = getGod(godName);
 
         if (god != null) {
-            god.getBehavior().onAttack(player, event.getEntity(), event);
+            god.getBehavior().onAttackEntity(player, event.getEntity(), event);
         }
     }
 

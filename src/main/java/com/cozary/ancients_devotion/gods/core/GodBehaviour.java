@@ -12,7 +12,7 @@ import net.neoforged.neoforge.event.level.BlockEvent;
 public interface GodBehaviour {
     void onTick(Player player);
 
-    void onAttack(Player player, LivingEntity target, LivingIncomingDamageEvent event);
+    void onAttackEntity(Player player, LivingEntity target, LivingIncomingDamageEvent event);
 
     void onAttackPlayer(Player player, Entity target, LivingIncomingDamageEvent event);
 

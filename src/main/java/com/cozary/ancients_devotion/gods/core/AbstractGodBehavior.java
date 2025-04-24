@@ -15,7 +15,7 @@ public abstract class AbstractGodBehavior implements GodBehaviour {
     }
 
     @Override
-    public void onAttack(Player player, LivingEntity target, LivingIncomingDamageEvent event) {
+    public void onAttackEntity(Player player, LivingEntity target, LivingIncomingDamageEvent event) {
     }
 
     @Override

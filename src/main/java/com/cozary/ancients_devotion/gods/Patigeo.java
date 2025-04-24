@@ -63,6 +63,7 @@ public class Patigeo extends AbstractGodBehavior {
         applyGeologicalRegeneration(player);
         applyMiningReflexes(player);
         applyTelluricReach(player);
+        applyContemptForTheLight(player);
     }
 
     @Override
@@ -76,9 +77,38 @@ public class Patigeo extends AbstractGodBehavior {
     }
 
     @Override
-    public void onAttack(Player player, LivingEntity target, LivingIncomingDamageEvent event) {
+    public void onAttackEntity(Player player, LivingEntity target, LivingIncomingDamageEvent event) {
         applyMinerArms(player, event);
         trySismo(player, target);
+        applyIncompetenceWithTheOther(player, event);
+    }
+
+    private void applyIncompetenceWithTheOther(Player player, LivingIncomingDamageEvent event){
+        if (!(player.getMainHandItem().getItem() instanceof PickaxeItem) && !player.getMainHandItem().isEmpty()) {
+            event.setAmount(event.getAmount() * 0.5f);
+        }
+    }
+
+    private static final ResourceLocation CONTEMPT_FOR_THE_LIGHT_MODIFIER_ID = ResourceLocation.fromNamespaceAndPath(AncientsDevotion.MOD_ID, "contempt_for_the_light_modifier");
+
+    private void applyContemptForTheLight(Player player){
+        if(!isUndergroundBiome(player) && player.level().isDay()){
+            AttributeInstance attackReduction = player.getAttribute(Attributes.ATTACK_DAMAGE);
+            if (attackReduction != null && attackReduction.getModifier(CONTEMPT_FOR_THE_LIGHT_MODIFIER_ID) == null) {
+                AttributeModifier attackModifier = new AttributeModifier(
+                        CONTEMPT_FOR_THE_LIGHT_MODIFIER_ID,
+                        -20.0,
+                        AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
+                );
+                attackReduction.addTransientModifier(attackModifier);
+            }
+        }
+        else {
+            AttributeInstance movementSpeed = player.getAttribute(Attributes.ATTACK_DAMAGE);
+            if (movementSpeed != null) {
+                movementSpeed.removeModifier(CONTEMPT_FOR_THE_LIGHT_MODIFIER_ID);
+            }
+        }
     }
 
     private static boolean isOre(BlockState state) {
@@ -177,6 +207,9 @@ public class Patigeo extends AbstractGodBehavior {
         float chance = 1;
         float launchPower = 0.5F;
         int blocksLaunched = 10;
+
+        if(!(player.getMainHandItem().getItem() instanceof PickaxeItem))
+            return;
 
         if (level.random.nextFloat() < chance) {
             BlockPos basePos = target.blockPosition();
