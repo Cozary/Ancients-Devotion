@@ -81,23 +81,36 @@ public class Silvaeria extends AbstractGodBehavior {
     @Override
     public void onTick(Player player) {
         super.onTick(player);
-        applyNaturalMimicry(player);
-        applySilentGrowth(player);
-        applyNaturalShelter(player);
-        applyOneWithTheWood(player);
+        if (DevotionHandler.hasDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)), 5)) {
+            applyNaturalMimicry(player);
+        }
+        if (DevotionHandler.hasDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)), 50)) {
+            applySilentGrowth(player);
+        }
+        if (DevotionHandler.hasDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)), 30)) {
+            applyNaturalShelter(player);
+        }
+        if (DevotionHandler.hasDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)), 10)) {
+            applyOneWithTheWood(player);
+        }
     }
 
     @Override
     public void onAttackPlayer(Player player, Entity target, LivingIncomingDamageEvent event) {
         super.onAttackPlayer(player, target, event);
-        applySpiritAlly(player, event);
+        if (DevotionHandler.hasDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)), 20)) {
+            applySpiritAlly(player, event);
+        }
     }
 
     @Override
     public void onPlayerBreakBlock(Player player, BlockEvent.BreakEvent event) {
         super.onPlayerBreakBlock(player, event);
-        applyGreenResonance(player, event);
-        increaseDevotion(player,event);
+        if (DevotionHandler.hasDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)), 40)) {
+            applyGreenResonance(player, event);
+        }
+
+        increaseDevotion(player, event);
     }
 
     @Override
@@ -138,22 +151,44 @@ public class Silvaeria extends AbstractGodBehavior {
     //Todo make this bonuses disappear when not holding.
     private void applyOneWithTheWood(Player player) {
         ItemStack mainHand = player.getMainHandItem();
+        float attackDamageMultiplier = Math.min(3.0f, Math.max(1.1f, (DevotionHandler.getDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)))) * 0.018f + 0.91f)); //Lv100 max value
+        float attackSpeedMultiplier = Math.min(2.5f, Math.max(1.1f, (DevotionHandler.getDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)))) * 0.015f + 0.94f)); //Lv100 max value
+        float DurabilityMultiplier = Math.min(20.0f, Math.max(1.1f, (DevotionHandler.getDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)))) * 0.21f - 1.0f)); //Lv100 max value
 
         if (mainHand.getItem() instanceof TieredItem tieredItem && tieredItem.getTier() == Tiers.WOOD) {
-            float devotion = DevotionHandler.getDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)));
-            if (devotion > 0) {
-                float bonusAttackSpeed = 10f * devotion;
-                float bonusAttackDamage = 10f * devotion;
 
-                applyModifiers(mainHand, bonusAttackSpeed, bonusAttackDamage);
-                modifyDurability(mainHand, devotion);
+            float baseAttackDamage = getBaseAttackDamageForWoodItem(mainHand.getItem());
+            float baseAttackSpeed = getBaseAttackSpeedForWoodItem(mainHand.getItem());
 
-            }
+            float scaledAttackDamage = baseAttackDamage * attackDamageMultiplier;
+            float scaledAttackSpeed = baseAttackSpeed * attackSpeedMultiplier;
+
+            applyModifiers(mainHand, scaledAttackSpeed, scaledAttackDamage);
+            modifyDurability(mainHand, DurabilityMultiplier);
         }
     }
 
-    private void applyModifiers(ItemStack stack, float bonusAttackSpeed, float bonusAttackDamage) {
+    private float getBaseAttackDamageForWoodItem(Item item) {
+        if (item == Items.WOODEN_SWORD) return 4.0f;
+        else if (item == Items.WOODEN_AXE) return 7.0f;
+        else if (item == Items.WOODEN_PICKAXE) return 2.0f;
+        else if (item == Items.WOODEN_SHOVEL) return 2.5f;
+        else if (item == Items.WOODEN_HOE) return 1.0f;
+        else return 1.0f;
+    }
+
+    private float getBaseAttackSpeedForWoodItem(Item item) {
+        if (item == Items.WOODEN_SWORD) return 1.6f;
+        else if (item == Items.WOODEN_AXE) return 0.8f;
+        else if (item == Items.WOODEN_PICKAXE) return 1.2f;
+        else if (item == Items.WOODEN_SHOVEL) return 1.0f;
+        else if (item == Items.WOODEN_HOE) return 1.0f;
+        else return 1.0f;
+    }
+
+    private void applyModifiers(ItemStack stack, float bonusAttackSpeed, double bonusAttackDamage) {
         ItemAttributeModifiers.Builder builder = ItemAttributeModifiers.builder();
+
 
         AttributeModifier attackSpeedModifier = new AttributeModifier(
                 ResourceLocation.fromNamespaceAndPath(AncientsDevotion.MOD_ID, "one_with_the_wood_attack_speed"),
@@ -170,6 +205,10 @@ public class Silvaeria extends AbstractGodBehavior {
         builder.add(Attributes.ATTACK_SPEED, attackSpeedModifier, EquipmentSlotGroup.MAINHAND);
         builder.add(Attributes.ATTACK_DAMAGE, attackDamageModifier, EquipmentSlotGroup.MAINHAND);
 
+        //modifiers.withModifierAdded(Attributes.ATTACK_SPEED, attackSpeedModifier, EquipmentSlotGroup.MAINHAND);
+        //modifiers.withModifierAdded(Attributes.ATTACK_DAMAGE, attackDamageModifier, EquipmentSlotGroup.MAINHAND);
+
+
         stack.set(DataComponents.ATTRIBUTE_MODIFIERS, builder.build());
     }
 
@@ -182,8 +221,8 @@ public class Silvaeria extends AbstractGodBehavior {
 
         int newMaxDurability = (int) (baseMaxDurability * Math.max(1f, devotion));
 
-        AncientsDevotion.LOG.info("Current max: {}", currentMaxDamage);
-        AncientsDevotion.LOG.info("Modified max: {}", newMaxDurability);
+        //AncientsDevotion.LOG.info("Current max: {}", currentMaxDamage);
+        //AncientsDevotion.LOG.info("Modified max: {}", newMaxDurability);
 
         if (newMaxDurability <= currentMaxDamage) return;
 
@@ -237,59 +276,69 @@ public class Silvaeria extends AbstractGodBehavior {
     }
 
     //from CropBlock idk why AT doesnt work
-    protected static float getGrowthSpeed(BlockState blockState, BlockGetter p_52274_, BlockPos p_52275_) {
-        Block p_52273_ = blockState.getBlock();
-        float f = 1.0F;
-        BlockPos blockpos = p_52275_.below();
+    protected static float getGrowthSpeed(BlockState cropState, BlockGetter world, BlockPos cropPos, Player player) {
+        float growthChance = Math.min(1.0f, Math.max(0.1f, (DevotionHandler.getDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)))) * -0.018f + 1.9f)); //Lv100 max value
 
-        for (int i = -1; i <= 1; i++) {
-            for (int j = -1; j <= 1; j++) {
-                float f1 = 0.0F;
-                BlockState blockstate = p_52274_.getBlockState(blockpos.offset(i, 0, j));
-                net.neoforged.neoforge.common.util.TriState soilDecision = blockstate.canSustainPlant(p_52274_, blockpos.offset(i, 0, j), net.minecraft.core.Direction.UP, blockState);
-                if (soilDecision.isDefault() ? blockstate.getBlock() instanceof net.minecraft.world.level.block.FarmBlock : soilDecision.isTrue()) {
-                    f1 = 1.0F;
-                    if (blockstate.isFertile(p_52274_, p_52275_.offset(i, 0, j))) {
-                        f1 = 3.0F;
+        Block cropBlock = cropState.getBlock();
+        BlockPos soilBelow = cropPos.below();
+
+        for (int offsetX = -1; offsetX <= 1; offsetX++) {
+            for (int offsetZ = -1; offsetZ <= 1; offsetZ++) {
+                float bonus = 0.0F;
+                BlockPos soilCheckPos = soilBelow.offset(offsetX, 0, offsetZ);
+                BlockState soilState = world.getBlockState(soilCheckPos);
+                net.neoforged.neoforge.common.util.TriState canSustain = soilState.canSustainPlant(world, soilCheckPos, net.minecraft.core.Direction.UP, cropState);
+
+                if (canSustain.isDefault() ? soilState.getBlock() instanceof net.minecraft.world.level.block.FarmBlock : canSustain.isTrue()) {
+                    bonus = 1.0F;
+                    if (soilState.isFertile(world, cropPos.offset(offsetX, 0, offsetZ))) {
+                        bonus = 3.0F;
                     }
                 }
 
-                if (i != 0 || j != 0) {
-                    f1 /= 4.0F;
+                if (offsetX != 0 || offsetZ != 0) {
+                    bonus /= 4.0F;
                 }
 
-                f += f1;
+                growthChance += bonus;
             }
         }
 
-        BlockPos blockpos1 = p_52275_.north();
-        BlockPos blockpos2 = p_52275_.south();
-        BlockPos blockpos3 = p_52275_.west();
-        BlockPos blockpos4 = p_52275_.east();
-        boolean flag = p_52274_.getBlockState(blockpos3).is(p_52273_) || p_52274_.getBlockState(blockpos4).is(p_52273_);
-        boolean flag1 = p_52274_.getBlockState(blockpos1).is(p_52273_) || p_52274_.getBlockState(blockpos2).is(p_52273_);
-        if (flag && flag1) {
-            f /= 2.0F;
+        BlockPos north = cropPos.north();
+        BlockPos south = cropPos.south();
+        BlockPos west = cropPos.west();
+        BlockPos east = cropPos.east();
+
+        boolean hasSameCropX = world.getBlockState(west).is(cropBlock) || world.getBlockState(east).is(cropBlock);
+        boolean hasSameCropZ = world.getBlockState(north).is(cropBlock) || world.getBlockState(south).is(cropBlock);
+
+        if (hasSameCropX && hasSameCropZ) {
+            growthChance /= 2.0F;
         } else {
-            boolean flag2 = p_52274_.getBlockState(blockpos3.north()).is(p_52273_)
-                    || p_52274_.getBlockState(blockpos4.north()).is(p_52273_)
-                    || p_52274_.getBlockState(blockpos4.south()).is(p_52273_)
-                    || p_52274_.getBlockState(blockpos3.south()).is(p_52273_);
-            if (flag2) {
-                f /= 2.0F;
+            boolean hasDiagonalSameCrop =
+                    world.getBlockState(west.north()).is(cropBlock) ||
+                            world.getBlockState(east.north()).is(cropBlock) ||
+                            world.getBlockState(east.south()).is(cropBlock) ||
+                            world.getBlockState(west.south()).is(cropBlock);
+
+            if (hasDiagonalSameCrop) {
+                growthChance /= 2.0F;
             }
         }
 
-        return f;
+        return growthChance;
     }
 
+
     public static void applyNaturalShelter(Player player) {
+        float armorAmount = Math.min(20.0f, Math.max(1.0f, (DevotionHandler.getDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)))) * 0.27f - 7.14f)); //Lv100 max value
+
         if (player.level().getBiome(player.blockPosition()).is(BiomeTags.IS_FOREST)) {
             AttributeInstance armor = player.getAttribute(Attributes.ARMOR);
             if (armor != null && armor.getModifier(NATURAL_SHELTER_MODIFIER_ID) == null) {
                 AttributeModifier armorModifier = new AttributeModifier(
                         NATURAL_SHELTER_MODIFIER_ID,
-                        4.0,
+                        armorAmount,
                         AttributeModifier.Operation.ADD_VALUE
                 );
                 armor.addTransientModifier(armorModifier);
@@ -304,7 +353,9 @@ public class Silvaeria extends AbstractGodBehavior {
     }
 
     private void applyNaturalMimicry(Player player) {
-        player.level().getEntitiesOfClass(Mob.class, player.getBoundingBox().inflate(64))
+        float radius = Math.min(64.0f, Math.max(16.0f, (DevotionHandler.getDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)))) * 0.5f + 13.5f)); //Lv100 max value
+
+        player.level().getEntitiesOfClass(Mob.class, player.getBoundingBox().inflate(radius))
                 .forEach(mob -> {
 
                     AttributeInstance followRangeAttribute = mob.getAttribute(Attributes.FOLLOW_RANGE);
@@ -339,8 +390,10 @@ public class Silvaeria extends AbstractGodBehavior {
 
     //Todo Maybe make bees not dying from this :c
     private void applySpiritAlly(Player player, LivingIncomingDamageEvent event) {
+        float radius = Math.min(64.0f, Math.max(16.0f, (DevotionHandler.getDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)))) * 0.6f + 4f)); //Lv100 max value
+
         if (event.getAmount() > 0) {
-            player.level().getEntitiesOfClass(Entity.class, player.getBoundingBox().inflate(32))
+            player.level().getEntitiesOfClass(Entity.class, player.getBoundingBox().inflate(radius))
                     .forEach(entity -> {
                         if (entity instanceof Wolf wolf && !wolf.isTame()) {
                             wolf.setTarget((LivingEntity) event.getSource().getEntity());
@@ -357,7 +410,7 @@ public class Silvaeria extends AbstractGodBehavior {
         BlockPos playerPos = player.blockPosition();
         for (BlockPos pos : BlockPos.betweenClosed(playerPos.offset(-3, -1, -3), playerPos.offset(3, 1, 3))) {
             if (player.level().getBlockState(pos).getBlock() instanceof CropBlock crop) {
-                randomTick(player.level().getBlockState(pos), (ServerLevel) player.level(), pos, player.level().random, crop);
+                randomTick(player.level().getBlockState(pos), (ServerLevel) player.level(), pos, player.level().random, crop, player);
             }
         }
     }
@@ -365,13 +418,13 @@ public class Silvaeria extends AbstractGodBehavior {
     //from CropBlock idk why AT doesnt work
     //Todo trees and everything that can grow?
     //todo nerf
-    protected void randomTick(BlockState blockState, ServerLevel serverLevel, BlockPos blockPos, RandomSource randomSource, CropBlock cropBlock) {
+    protected void randomTick(BlockState blockState, ServerLevel serverLevel, BlockPos blockPos, RandomSource randomSource, CropBlock cropBlock, Player player) {
         if (!serverLevel.isAreaLoaded(blockPos, 1))
             return; // Forge: prevent loading unloaded chunks when checking neighbor's light
         if (serverLevel.getRawBrightness(blockPos, 0) >= 9) {
             int i = cropBlock.getAge(blockState);
             if (i < cropBlock.getMaxAge()) {
-                float f = getGrowthSpeed(blockState, serverLevel, blockPos);
+                float f = getGrowthSpeed(blockState, serverLevel, blockPos, player);
                 if (net.neoforged.neoforge.common.CommonHooks.canCropGrow(serverLevel, blockPos, blockState, randomSource.nextInt((int) (25.0F / f) + 1) == 0)) {
                     serverLevel.setBlock(blockPos, cropBlock.getStateForAge(i + 1), 2);
                     net.neoforged.neoforge.common.CommonHooks.fireCropGrowPost(serverLevel, blockPos, blockState);
@@ -381,9 +434,11 @@ public class Silvaeria extends AbstractGodBehavior {
     }
 
     private void applyGreenResonance(Player player, BlockEvent.BreakEvent event) {
+        float probability = Math.min(25.0f, Math.max(1.0f, (DevotionHandler.getDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)))) * 0.4f - 15.0f)); //Lv100 max value
+
         if (event.getState().is(BlockTags.LOGS)) {
             chopTree(player, event.getPos());
-            if (player.level().random.nextFloat() < 0.25f) { // 25% de probabilidad de madera extra
+            if (player.level().random.nextFloat() < probability) { // 25% de probabilidad de madera extra
                 ItemEntity extraWood = new ItemEntity(player.level(), event.getPos().getX(), event.getPos().getY(), event.getPos().getZ(), new ItemStack(event.getState().getBlock().asItem()));
                 player.level().addFreshEntity(extraWood);
             }
