@@ -1,5 +1,6 @@
 package com.cozary.ancients_devotion.commands;
 
+import com.cozary.ancients_devotion.client.menu.GodScreen;
 import com.cozary.ancients_devotion.gods.core.God;
 import com.cozary.ancients_devotion.init.GodRegistry;
 import com.cozary.ancients_devotion.network.GodData;
@@ -8,6 +9,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
+import net.minecraft.client.Minecraft;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
@@ -92,6 +94,15 @@ public class ModCommands {
                                     return 1;
                                 })
                         )
+        );
+
+        dispatcher.register(
+                Commands.literal("god")
+                        .requires(source -> source.hasPermission(0))
+                        .executes(context -> {
+                            Minecraft.getInstance().tell(() -> Minecraft.getInstance().setScreen(new GodScreen()));
+                            return 1;
+                        })
         );
 
     }

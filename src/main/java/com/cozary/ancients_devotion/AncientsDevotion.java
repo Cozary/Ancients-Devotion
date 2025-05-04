@@ -46,14 +46,7 @@ public class AncientsDevotion {
     private void registerCommands(final RegisterCommandsEvent event) {
         ModCommands.registerCommands(event.getDispatcher());
 
-        event.getDispatcher().register(
-                Commands.literal("god")
-                        .requires(source -> source.hasPermission(0))
-                        .executes(context -> {
-                            Minecraft.getInstance().tell(() -> Minecraft.getInstance().setScreen(new GodScreen()));
-                            return 1;
-                        })
-        );
+
     }
 
     private void commonSetup(FMLCommonSetupEvent event) {
