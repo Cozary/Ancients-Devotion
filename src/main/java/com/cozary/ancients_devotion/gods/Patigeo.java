@@ -59,27 +59,44 @@ public class Patigeo extends AbstractGodBehavior {
 
     @Override
     public void onTick(Player player) {
-        applyVoiceOfTheEarth(player);
-        applyGeologicalRegeneration(player);
-        applyMiningReflexes(player);
-        applyTelluricReach(player);
+        if (DevotionHandler.hasDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)), 100)) {
+            applyVoiceOfTheEarth(player);
+        }
+        if (DevotionHandler.hasDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)), 70)) {
+            applyGeologicalRegeneration(player);
+        }
+        if (DevotionHandler.hasDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)), 40)) {
+            applyMiningReflexes(player);
+        }
+        if (DevotionHandler.hasDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)), 60)) {
+            applyTelluricReach(player);
+        }
+
         applyContemptForTheLight(player);
     }
 
     @Override
     public void onAttackPlayer(Player player, Entity target, LivingIncomingDamageEvent event) {
-        applyStoneShell(player, event);
+        if (DevotionHandler.hasDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)), 30)) {
+            applyStoneShell(player, event);
+        }
     }
 
     @Override
     public void onPlayerBreakBlock(Player player, BlockEvent.BreakEvent event) {
-        applyEchoOfTheDepths(player, event);
+        if (DevotionHandler.hasDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)), 5)) {
+            applyEchoOfTheDepths(player, event);
+        }
     }
 
     @Override
     public void onAttackEntity(Player player, LivingEntity target, LivingIncomingDamageEvent event) {
-        applyMinerArms(player, event);
-        trySismo(player, target);
+        if (DevotionHandler.hasDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)), 10)) {
+            applyMinerArms(player, event);
+        }
+        if (DevotionHandler.hasDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)), 20)) {
+            trySismo(player, target);
+        }
         applyIncompetenceWithTheOther(player, event);
     }
 
@@ -119,9 +136,9 @@ public class Patigeo extends AbstractGodBehavior {
     }
 
     public static void applyStoneShell(Player player, LivingIncomingDamageEvent event) {
+        float amountReduced = Math.min(25.0f, Math.max(1.0f, (DevotionHandler.getDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)))) * 0.34f - 9.28f)); //Lv100 max value
         if (isUndergroundBiome(player)) {
-            float reduced = 10; //Percentage
-            event.setAmount(event.getAmount() * (reduced / 100));
+            event.setAmount(event.getAmount() * (amountReduced / 100));
         }
     }
 
@@ -194,9 +211,10 @@ public class Patigeo extends AbstractGodBehavior {
     }
 
     public static void applyMinerArms(Player player, LivingIncomingDamageEvent event) {
+        float amount = Math.min(50.0f, Math.max(1.0f, (DevotionHandler.getDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)))) * 0.54f - 4.44f)); //Lv100 max value
         ItemStack mainHand = player.getMainHandItem();
         if (mainHand.getItem() instanceof PickaxeItem) {
-            event.setAmount(event.getAmount() * 50);
+            event.setAmount(event.getAmount() * amount);
         }
     }
 
@@ -271,12 +289,14 @@ public class Patigeo extends AbstractGodBehavior {
 
     //Check pickaxe
     public static void applyMiningReflexes(Player player) {
+        float amount = Math.min(2.0f, Math.max(1.0f, (DevotionHandler.getDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)))) * 0.016f + 0.33f)); //Lv100 max value
+
         if (player.getMainHandItem().getItem() instanceof PickaxeItem) {
             AttributeInstance blockBreakSpeed = player.getAttribute(Attributes.BLOCK_BREAK_SPEED);
             if (blockBreakSpeed != null && blockBreakSpeed.getModifier(MINING_REFLEXES_MODIFIER_ID) == null) {
                 AttributeModifier blockBreakSpeedModifier = new AttributeModifier(
                         MINING_REFLEXES_MODIFIER_ID,
-                        20.0,
+                        amount,
                         AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
                 );
                 blockBreakSpeed.addTransientModifier(blockBreakSpeedModifier);
@@ -292,13 +312,15 @@ public class Patigeo extends AbstractGodBehavior {
 
     //Check pickaxe
     public static void applyTelluricReach(Player player) {
+        float amount = Math.min(3.5f, Math.max(0.1f, (DevotionHandler.getDevotion(player, DevotionHandler.getGod(DevotionHandler.getCurrentGod(player)))) * 0.085f - 5.0f)); //Lv100 max value
+
         if (player.getMainHandItem().getItem() instanceof PickaxeItem) {
             AttributeInstance blockInteractionRange = player.getAttribute(Attributes.BLOCK_INTERACTION_RANGE);
             if (blockInteractionRange != null && blockInteractionRange.getModifier(TELLURIC_REACH_MODIFIER_ID) == null) {
                 AttributeModifier reachBlockInteractionRangeModifier = new AttributeModifier(
                         TELLURIC_REACH_MODIFIER_ID,
-                        20.0,
-                        AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
+                        amount,
+                        AttributeModifier.Operation.ADD_VALUE
                 );
                 blockInteractionRange.addTransientModifier(reachBlockInteractionRangeModifier);
             }
