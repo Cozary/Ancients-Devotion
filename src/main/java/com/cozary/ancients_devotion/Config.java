@@ -1,3 +1,4 @@
+/*
 package com.cozary.ancients_devotion;
 
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -42,3 +43,4 @@ public class Config {
         items = ITEM_STRINGS.get().stream().map(itemName -> BuiltInRegistries.ITEM.get(ResourceLocation.parse(itemName))).collect(Collectors.toSet());
     }
 }
+*/
