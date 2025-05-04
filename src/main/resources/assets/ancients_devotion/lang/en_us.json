@@ -1,5 +1,4 @@
 {
-  "itemGroup.ancients_devotion": "Example Mod Tab",
-  "block.ancients_devotion.example_block": "Example Block",
-  "item.ancients_devotion.example_item": "Example Item"
+  "itemGroup.ancients_devotion": "Ancients Devotion Tab",
+  "item.ancients_devotion.medallion": "Medallion"
 }
