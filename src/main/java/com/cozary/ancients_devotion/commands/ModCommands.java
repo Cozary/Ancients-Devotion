@@ -3,7 +3,7 @@ package com.cozary.ancients_devotion.commands;
 import com.cozary.ancients_devotion.client.menu.GodScreen;
 import com.cozary.ancients_devotion.gods.core.God;
 import com.cozary.ancients_devotion.init.GodRegistry;
-import com.cozary.ancients_devotion.network.GodData;
+import com.cozary.ancients_devotion.network.data.GodData;
 import com.cozary.ancients_devotion.util.DevotionHandler;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -18,6 +18,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.Map;
+
+import static com.cozary.ancients_devotion.util.DevotionHandler.*;
 
 public class ModCommands {
     public static final SuggestionProvider<CommandSourceStack> GOD_SUGGESTIONS = (context, builder) -> {
@@ -62,7 +64,7 @@ public class ModCommands {
                                                     String godDevotion = StringArgumentType.getString(context, "devotion");
                                                     int quantity = IntegerArgumentType.getInteger(context, "quantity");
 
-                                                    DevotionHandler.setDevotion(player, DevotionHandler.getGod(godDevotion), quantity);
+                                                    DevotionHandler.setDevotion(player, getGod(godDevotion), quantity);
 
                                                     context.getSource().sendSuccess(() -> Component.literal(
                                                             "Set devotion of " + player.getName().getString() +
@@ -86,7 +88,7 @@ public class ModCommands {
                                             "Devotion of " + player.getName().getString() + ":"), false);
 
                                     for (Map.Entry<String, God> god : GodRegistry.GODS.entrySet()) {
-                                        float devotion = DevotionHandler.getDevotion(player, god.getValue());
+                                        float devotion = getDevotion(player, god.getValue());
                                         source.sendSuccess(() -> Component.literal(
                                                 " - " + god.getValue().getName() + ": " + devotion), false);
                                     }
@@ -96,14 +98,29 @@ public class ModCommands {
                         )
         );
 
-        dispatcher.register(
+        /*dispatcher.register(
                 Commands.literal("god")
                         .requires(source -> source.hasPermission(0))
                         .executes(context -> {
                             Minecraft.getInstance().tell(() -> Minecraft.getInstance().setScreen(new GodScreen()));
                             return 1;
                         })
+        );*/
+
+        dispatcher.register(
+                Commands.literal("god")
+                        .requires(source -> source.hasPermission(0))
+                        .executes(context -> {
+                            ServerPlayer player = (ServerPlayer) context.getSource().getEntity();
+                            String godName = getCurrentGod(player);
+                            float devotion = getDevotion(player, getGod(godName));
+
+                            Minecraft.getInstance().tell(() -> Minecraft.getInstance().setScreen(new GodScreen(godName, devotion)));
+
+                            return 1;
+                        })
         );
+
 
     }
 }

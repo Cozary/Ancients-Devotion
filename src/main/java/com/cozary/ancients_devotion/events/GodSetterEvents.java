@@ -2,7 +2,9 @@ package com.cozary.ancients_devotion.events;
 
 import com.cozary.ancients_devotion.AncientsDevotion;
 import com.cozary.ancients_devotion.init.ModItems;
-import com.cozary.ancients_devotion.network.GodData;
+import com.cozary.ancients_devotion.network.data.GodData;
+import com.cozary.ancients_devotion.network.data.SilvaeriaCropsCountData;
+import com.cozary.ancients_devotion.network.data.SoltitiaDevotionData;
 import com.cozary.ancients_devotion.util.DevotionHandler;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -96,6 +98,8 @@ public class GodSetterEvents {
                 int count = player.getData(SILVAERIA_CROPS_COUNT);
                 count++;
                 player.setData(SILVAERIA_CROPS_COUNT, count);
+
+                PacketDistributor.sendToPlayer((ServerPlayer) player, new SilvaeriaCropsCountData(count));
 
                 if (count >= 64) {
                     DevotionHandler.setCurrentGod(player, "Silvaeria");

@@ -2,7 +2,7 @@ package com.cozary.ancients_devotion.events;
 
 import com.cozary.ancients_devotion.AncientsDevotion;
 import com.cozary.ancients_devotion.gods.core.God;
-import com.cozary.ancients_devotion.network.GodData;
+import com.cozary.ancients_devotion.network.data.GodData;
 import com.cozary.ancients_devotion.util.DevotionHandler;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;

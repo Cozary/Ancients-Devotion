@@ -2,9 +2,12 @@ package com.cozary.ancients_devotion.gods;
 
 import com.cozary.ancients_devotion.AncientsDevotion;
 import com.cozary.ancients_devotion.gods.core.AbstractGodBehavior;
+import com.cozary.ancients_devotion.network.data.GodData;
+import com.cozary.ancients_devotion.network.data.SoltitiaDevotionData;
 import com.cozary.ancients_devotion.util.DevotionHandler;
 import net.minecraft.ChatFormatting;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -23,6 +26,7 @@ import net.minecraft.world.scores.Scoreboard;
 import net.neoforged.neoforge.common.damagesource.DamageContainer;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.HashSet;
 import java.util.List;

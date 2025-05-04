@@ -1,4 +1,4 @@
-package com.cozary.ancients_devotion.network;
+package com.cozary.ancients_devotion.network.data;
 
 import com.cozary.ancients_devotion.AncientsDevotion;
 import io.netty.buffer.ByteBuf;
