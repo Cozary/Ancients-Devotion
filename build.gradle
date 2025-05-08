@@ -3,6 +3,7 @@ plugins {
     id 'maven-publish'
     id 'idea'
     id 'net.neoforged.moddev' version '2.0.78'
+    id "me.modmuss50.mod-publish-plugin" version "${mod_publish_version}"
 }
 
 version = mod_version
@@ -131,7 +132,8 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
                              mod_license            : mod_license,
                              mod_version            : mod_version,
                              mod_authors            : mod_authors,
-                             mod_description        : mod_description]
+                             mod_description        : mod_description,
+                             mod_publish_version    : mod_publish_version]
     inputs.properties replaceProperties
     expand replaceProperties
     from "src/main/template"
@@ -164,4 +166,26 @@ idea {
         downloadSources = true
         downloadJavadoc = true
     }
+}
+
+publishMods {
+    file = jar.archiveFile
+    changelog = file("CHANGELOG.md").text
+    type = ALPHA
+    modLoaders.add("neoforge")
+    displayName = "${mod_name}-${minecraft_version}-${mod_version}-alpha"
+    dryRun = dry_run.toBoolean()
+    version = mod_version
+
+    curseforge {
+        accessToken = providers.environmentVariable("CURSEFORGE_API_KEY")
+        projectId = curseforge_project_id
+        minecraftVersions.add(minecraft_version)
+    }
+
+    /*modrinth {
+        accessToken = accessToken = providers.environmentVariable("MODRINTH_API_KEY")
+        projectId = modrinth_project_id
+        minecraftVersions.add(minecraft_version)
+    }*/
 }
