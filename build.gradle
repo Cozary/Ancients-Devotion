@@ -173,7 +173,7 @@ publishMods {
     changelog = file("CHANGELOG.md").text
     type = ALPHA
     modLoaders.add("neoforge")
-    displayName = "${mod_name}-${minecraft_version}-${mod_version}-alpha"
+    displayName = "${mod_name}-${minecraft_version}-${mod_version}"
     dryRun = dry_run.toBoolean()
     version = mod_version
 
